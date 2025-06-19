@@ -1,2 +1,3 @@
 azure-cognitiveservices-speech
 pyside6
+pyinstaller
