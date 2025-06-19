@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -18,10 +21,14 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(QWidget(self))
         self.setStatusBar(StatusBar(self))
 
+        basedir = Path(__file__).parent.parent
+        if not hasattr(sys, "_MEIPASS"):
+            basedir = basedir.parent
+
         self.input_field: QPlainTextEdit = QPlainTextEdit(self)
 
         submit_button = QPushButton("Save", self)
-        submit_button.setIcon(QIcon("resources/download.svg"))
+        submit_button.setIcon(QIcon(str(basedir / "resources" / "download.svg")))
         _ = submit_button.clicked.connect(
             lambda: speech_synthesizer.speak_text_async(self.input_field.toPlainText())
         )
