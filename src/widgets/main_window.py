@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 
 from PySide6.QtGui import QIcon
@@ -22,7 +21,7 @@ class MainWindow(QMainWindow):
         self.setStatusBar(StatusBar(self))
 
         basedir = Path(__file__).parent.parent
-        if not hasattr(sys, "_MEIPASS"):
+        if "__compiled__" not in globals():
             basedir = basedir.parent
 
         self.input_field: QPlainTextEdit = QPlainTextEdit(self)
