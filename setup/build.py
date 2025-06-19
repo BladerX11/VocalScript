@@ -7,6 +7,8 @@ PyInstaller.__main__.run(
         "--windowed",
         "--collect-submodules",
         "azure.cognitiveservices.speech",
+        "--add-data",
+        "resources:resources",
         "--name",
         "VocalScript",
     ]
