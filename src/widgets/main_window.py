@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 from PySide6.QtGui import QIcon
@@ -16,6 +17,8 @@ from widgets.status_bar import StatusBar
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.logger: logging.Logger = logging.getLogger(__name__)
+
         self.setWindowTitle("VocalScript")
         self.setCentralWidget(QWidget(self))
         self.setStatusBar(StatusBar(self))
@@ -28,11 +31,14 @@ class MainWindow(QMainWindow):
 
         submit_button = QPushButton("Save", self)
         submit_button.setIcon(QIcon(str(basedir / "resources" / "download.svg")))
-        _ = submit_button.clicked.connect(
-            lambda: speech_synthesizer.speak_text_async(self.input_field.toPlainText())
-        )
+        _ = submit_button.clicked.connect(self.__on_submit)
 
         main_layout: QVBoxLayout = QVBoxLayout()
         main_layout.addWidget(self.input_field)
         main_layout.addWidget(submit_button)
         self.centralWidget().setLayout(main_layout)
+
+    def __on_submit(self):
+        text = self.input_field.toPlainText().strip()
+        self.logger.info(f"Synthesising started for: {text}")
+        _ = speech_synthesizer.speak_text_async(text)
