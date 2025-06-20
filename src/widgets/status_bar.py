@@ -13,7 +13,7 @@ class StatusBar(QStatusBar):
             lambda _: self.showMessage("Synthesising")
         )
         speech_synthesizer.synthesis_completed.connect(
-            lambda _: self.showMessage("Synthesis complete")
+            lambda _: self.showMessage("Completed")
         )
         speech_synthesizer.synthesis_canceled.connect(self.synthesis_canceled)
 
@@ -21,7 +21,7 @@ class StatusBar(QStatusBar):
         cancellation_details = event.result.cancellation_details
 
         if cancellation_details.reason == CancellationReason.Error:
-            msg = f"Error: {cancellation_details.error_details}"
+            msg = "Error. Check log"
         else:
             msg = "Canceled"
 
