@@ -13,13 +13,14 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            container: rockylinux:8-minimal
+            container: debian:oldstable
     container: ${{ matrix.container }}
     steps:
       - name: Install container packages
         if: matrix.os == 'ubuntu-latest'
         run: |
-          microdnf install -y tar gcc make gzip libatomic-static
+          apt update
+          apt install -y gcc make
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
