@@ -1,4 +1,4 @@
-import sys
+import logging
 from pathlib import Path
 
 from PySide6.QtGui import QIcon
@@ -17,23 +17,29 @@ from widgets.status_bar import StatusBar
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        logging.basicConfig(filename="vocalscript.log", level=logging.INFO)
+        self.logger: logging.Logger = logging.getLogger("vocalscript")
+
         self.setWindowTitle("VocalScript")
         self.setCentralWidget(QWidget(self))
         self.setStatusBar(StatusBar(self))
 
         basedir = Path(__file__).parent.parent
-        if not hasattr(sys, "_MEIPASS"):
+        if "__compiled__" not in globals():
             basedir = basedir.parent
 
         self.input_field: QPlainTextEdit = QPlainTextEdit(self)
 
         submit_button = QPushButton("Save", self)
         submit_button.setIcon(QIcon(str(basedir / "resources" / "download.svg")))
-        _ = submit_button.clicked.connect(
-            lambda: speech_synthesizer.speak_text_async(self.input_field.toPlainText())
-        )
+        _ = submit_button.clicked.connect(self.__on_submit)
 
         main_layout: QVBoxLayout = QVBoxLayout()
         main_layout.addWidget(self.input_field)
         main_layout.addWidget(submit_button)
         self.centralWidget().setLayout(main_layout)
+
+    def __on_submit(self):
+        text = self.input_field.toPlainText().strip()
+        self.logger.info(f"Synthesising started for: {text}")
+        _ = speech_synthesizer.speak_text_async(text)
