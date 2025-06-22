@@ -1,9 +1,10 @@
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
-
+    branches: 
+      - main
 jobs:
   build:
     name: build
@@ -11,8 +12,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['windows-latest', 'ubuntu-latest', 'macos-latest']
+        os: [windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            container: debian:oldstable
+    container: ${{ matrix.container }}
     steps:
+      - name: Install container packages
+        if: matrix.container == 'debian:oldstable'
+        run: |
+          apt update
+          apt install -y gcc make libglib2.0-0
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -20,8 +30,6 @@ jobs:
           python-version-file: 'pyproject.toml'
       - name: Install uv
         uses: astral-sh/setup-uv@v6
-        with:
-          activate-environment: true
       - name: Install dependencies
         run: uv sync --locked
       - name: Build
@@ -29,6 +37,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ matrix.os }}
+          name: ${{ github.event.repository.name }}-${{ runner.os }}
           path: dist/*
           retention-days: 1
