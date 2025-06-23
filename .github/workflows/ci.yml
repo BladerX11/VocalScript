@@ -17,12 +17,14 @@ jobs:
           - os: ubuntu-latest
             container: debian:oldstable
     container: ${{ matrix.container }}
+    env:
+      NUITKA_CACHE_DIR: ${{ github.workspace }}/nuitka/cache
     steps:
       - name: Install container packages
         if: matrix.container == 'debian:oldstable'
         run: |
           apt update
-          apt install -y gcc make libglib2.0-0
+          apt install -y gcc make libglib2.0-0 ccache
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,6 +34,13 @@ jobs:
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
         run: uv sync --locked
+      - name: Cache Nuitka cache directory
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUITKA_CACHE_DIR }}
+          key: nuitka-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.py') }}
+          restore-keys: |
+            nuitka-${{ runner.os }}-${{ runner.arch }}-
       - name: Build
         run: uv run python setup/build.py
       - name: Upload artifact
