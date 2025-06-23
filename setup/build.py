@@ -1,8 +1,22 @@
-import os
 import subprocess
 import sys
+from os import environ
+from pathlib import Path
+from subprocess import CalledProcessError
 
-version = "0.1"
+import tomllib
+from tomllib import TOMLDecodeError
+
+try:
+    with (Path(__file__).parent.parent / "pyproject.toml").open("rb") as f:
+        project_info = tomllib.load(f)
+
+    version = str(project_info["project"]["version"])
+    name = str(project_info["project"]["name"])
+except (FileNotFoundError, TOMLDecodeError) as e:
+    print(f"Error reading pyproject.toml: {e}", file=sys.stderr)
+    sys.exit(1)
+
 command = [
     sys.executable,
     "-m",
@@ -13,13 +27,13 @@ command = [
     f"--macos-app-version={version}",
     "--enable-plugin=pyside6",
     "--output-dir=dist",
-    "--output-filename=vocalscript",
+    f"--output-filename={name}",
     "--include-package=azure.cognitiveservices.speech",
     "--include-data-dir=resources=resources",
     "src/main.py",
 ]
 
-if sys.platform == "win32" and os.environ.get("CI") == "true":
+if sys.platform == "win32" and environ.get("CI") == "true":
     command.append("--assume-yes-for-downloads")
 
 try:
@@ -27,5 +41,5 @@ try:
         command,
         check=True,
     )
-except subprocess.CalledProcessError as e:
+except CalledProcessError as e:
     sys.exit(e.returncode)
