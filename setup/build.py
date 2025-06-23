@@ -33,7 +33,7 @@ command = [
     "src/main.py",
 ]
 
-if sys.platform == "win32" and environ.get("CI") == "true":
+if environ.get("CI") == "true":
     command.append("--assume-yes-for-downloads")
 
 try:
