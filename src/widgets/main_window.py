@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 
 from PySide6.QtGui import QIcon
@@ -10,7 +9,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from azure_service import speech_synthesizer
+from azure_service import speak_text_async
 from widgets.settings import Settings
 from widgets.status_bar import StatusBar
 
@@ -18,7 +17,6 @@ from widgets.status_bar import StatusBar
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.logger: logging.Logger = logging.getLogger(__name__)
 
         self.setWindowTitle("VocalScript")
         self.setCentralWidget(QWidget(self))
@@ -34,17 +32,14 @@ class MainWindow(QMainWindow):
 
         submit_button = QPushButton("Save", self)
         submit_button.setIcon(QIcon(self.__get_resource("download.svg")))
-        _ = submit_button.clicked.connect(self.__on_submit)
+        _ = submit_button.clicked.connect(
+            lambda: speak_text_async(self.input_field.toPlainText().strip())
+        )
 
         main_layout: QVBoxLayout = QVBoxLayout(self.centralWidget())
         main_layout.addWidget(self.input_field)
         main_layout.addWidget(submit_button)
         self.centralWidget().setLayout(main_layout)
-
-    def __on_submit(self):
-        text = self.input_field.toPlainText().strip()
-        self.logger.info(f"Synthesising started for: {text}")
-        _ = speech_synthesizer.speak_text_async(text)
 
     def __get_resource(self, name: str):
         basedir = Path(__file__).parent.parent
