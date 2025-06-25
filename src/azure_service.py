@@ -1,5 +1,4 @@
 import logging
-import os
 
 from azure.cognitiveservices.speech import (
     CancellationReason,
@@ -10,10 +9,15 @@ from azure.cognitiveservices.speech import (
 from azure.cognitiveservices.speech.audio import AudioOutputConfig
 from azure.cognitiveservices.speech.diagnostics.logging import EventLogger
 
+from settings import settings
+
 speech_config = SpeechConfig(
-    subscription=os.environ.get("SPEECH_KEY"), endpoint=os.environ.get("ENDPOINT")
+    subscription=str(settings.value("key", " ")),
+    endpoint=str(settings.value("endpoint", " ")),
 )
-speech_config.speech_synthesis_voice_name = "en-US-AlloyTurboMultilingualNeural"
+speech_config.speech_synthesis_voice_name = str(
+    settings.value("voice_name", "en-US-AlloyTurboMultilingualNeural")
+)
 audio_config = AudioOutputConfig(filename="output.wav")
 speech_synthesizer = SpeechSynthesizer(
     speech_config=speech_config, audio_config=audio_config
