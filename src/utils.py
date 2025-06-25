@@ -2,10 +2,13 @@ from pathlib import Path
 import sys
 
 
-def get_folder():
-    folder = Path(sys.argv[0]).parent
+def from_executable(path: str | None = None):
+    location = Path(sys.argv[0]).parent
 
     if "__compiled__" not in globals():
-        folder = folder.parent
+        location = location.parent
 
-    return folder
+    if path is not None:
+        location = location / path
+
+    return location

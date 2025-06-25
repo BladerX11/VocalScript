@@ -1,6 +1,5 @@
 from datetime import datetime
 import logging
-from time import sleep
 
 from azure.cognitiveservices.speech import (
     AudioDataStream,
@@ -9,11 +8,10 @@ from azure.cognitiveservices.speech import (
     SpeechSynthesisEventArgs,
     SpeechSynthesizer,
 )
-from azure.cognitiveservices.speech.audio import AudioOutputConfig
 from azure.cognitiveservices.speech.diagnostics.logging import EventLogger
 
 from settings import settings
-from utils import get_folder
+from utils import from_executable
 
 speech_config = SpeechConfig(
     subscription=str(settings.value("key", " ")),
@@ -35,7 +33,7 @@ def log(msg: str):
 
 def synthesis_completed(event: SpeechSynthesisEventArgs):
     stream = AudioDataStream(event.result)
-    folder = get_folder() / "saved"
+    folder = from_executable("saved")
 
     if not folder.exists():
         folder.mkdir()
@@ -51,11 +49,5 @@ def synthesis_canceled(event: SpeechSynthesisEventArgs):
 
 
 EventLogger.set_callback(log)
-
-speech_synthesizer.synthesis_completed.connect(
-    lambda e: AudioDataStream(e.result).save_to_wav_file(
-        str(get_folder() / "saved" / (datetime.now().isoformat() + ".wav"))
-    )
-)
 speech_synthesizer.synthesis_canceled.connect(synthesis_canceled)
 speech_synthesizer.synthesis_completed.connect(synthesis_completed)
