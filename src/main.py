@@ -4,8 +4,9 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from widgets.main_window import MainWindow
+from utils import get_folder
 
-logging.basicConfig(filename="vocalscript.log", level=logging.INFO)
+logging.basicConfig(filename=str(get_folder() / "vocalscript.log"), level=logging.INFO)
 app = QApplication(sys.argv)
 QApplication.setApplicationName("vocalscript")
 QApplication.setOrganizationName("vocalscript")
