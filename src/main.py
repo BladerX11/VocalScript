@@ -7,6 +7,8 @@ from widgets.main_window import MainWindow
 
 logging.basicConfig(filename="vocalscript.log", level=logging.INFO)
 app = QApplication(sys.argv)
-window = MainWindow()
-window.show()
-app.exec()
+QApplication.setApplicationName("vocalscript")
+QApplication.setOrganizationName("vocalscript")
+QApplication.setApplicationDisplayName("VocalScript")
+MainWindow().show()
+sys.exit(app.exec())
