@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.NUITKA_CACHE_DIR }}
-          key: nuitka-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.py') }}
+          key: nuitka-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('uv.lock', 'src/**/*.py', 'scripts/*.py') }}
           restore-keys: |
             nuitka-${{ runner.os }}-${{ runner.arch }}-
       - name: Build
