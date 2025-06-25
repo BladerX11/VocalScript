@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSettings
 
-from utils import get_folder
+from utils import from_executable
 
 settings = QSettings(
-    str((get_folder() / "vocalscript.ini")), QSettings.Format.IniFormat
+    str(from_executable("vocalscript.ini")), QSettings.Format.IniFormat
 )
