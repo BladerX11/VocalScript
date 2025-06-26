@@ -12,7 +12,7 @@ from azure.cognitiveservices.speech import (
 from azure.cognitiveservices.speech.diagnostics.logging import EventLogger
 
 from settings import settings
-from utils import from_executable
+from utils import from_data_dir
 
 _logger = logging.getLogger(__name__)
 _speech_config = SpeechConfig(
@@ -58,21 +58,35 @@ def save_to_wav_file(
     result: SpeechSynthesisResult,
 ):
     stream = AudioDataStream(result)
-    folder = from_executable("saved")
-    file = folder / (datetime.now().isoformat() + ".wav")
-    _logger.info("Saving. File name: %s", file.name)
+    save_dir = "saved"
 
     try:
+        folder = from_data_dir(save_dir)
+        _logger.info("Creating save directory. Directory: %s", save_dir)
         folder.mkdir(exist_ok=True)
+        file = folder / (datetime.now().isoformat() + ".wav")
+        _logger.info("Saving file. File: %s", file.name)
         stream.save_to_wav_file(str(file))
     except FileExistsError as e:
-        msg = f"Saving failed. File {folder.name} already exists. Please move it and try again."
-        _logger.error("Saving failed.", exc_info=e)
+        _logger.error(
+            "Creating save directory failed. Error: %s", e.strerror, exc_info=e
+        )
+        msg = f"Creating save directory failed. Folder {save_dir} already exists as a file. Please move it and try again."
+    except PermissionError as e:
+        _logger.error(
+            "Creating save directory failed. Error: %s", e.strerror, exc_info=e
+        )
+        msg = "Creating save directory failed. Insufficient Permissions."
+    except OSError as e:
+        _logger.error(
+            "Creating save directory failed. Error: %s", e.strerror, exc_info=e
+        )
+        msg = "Creating Save directory failed. Filesystem error."
     except Exception as e:
-        msg = "Saving failed. Check log."
         _logger.error("Saving failed.", exc_info=e)
+        msg = "Saving failed. Check log."
     else:
-        msg = "Saving completed."
         _logger.info("Saving completed")
+        msg = "Saving completed."
 
     return msg

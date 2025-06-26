@@ -1,14 +1,28 @@
 from pathlib import Path
-import sys
+
+from PySide6.QtCore import QStandardPaths
 
 
-def from_executable(path: str | None = None):
-    location = Path(sys.argv[0]).parent
+def is_compiled():
+    return "__compiled__" in globals()
 
-    if "__compiled__" not in globals():
-        location = location.parent
 
-    if path is not None:
+def from_data_dir(path: str | None = None):
+    if is_compiled():
+        folder = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.AppDataLocation
+        )
+
+        if len(folder) == 0:
+            raise PermissionError
+
+        location = Path(folder)
+    else:
+        location = Path(__file__).parent.parent / "data"
+
+    location.mkdir(parents=True, exist_ok=True)
+
+    if path is not None and len(path) > 0:
         location = location / path
 
     return location
