@@ -66,9 +66,9 @@ To get a local copy up and running follow these simple example steps.
 
 ### Installation
 
-1. Navigate to the [Azure portal](portal.azure.com), then select your speech service resource to view and manage keys and enpoints.
-2. Download the [latest release](https://github.com/BladerX11/vocalscript/release) for the correct OS, indicated after the application name.
-3. Launch the application and click on settings in the menubar. Enter the key and enpoint obtained earlier and click save.
+1. Navigate to the [Azure portal](portal.azure.com), then select your speech service resource to view its keys and enpoints.
+2. Download the [latest release](https://github.com/BladerX11/vocalscript/releases/latest) for the correct OS, indicated after the application name.
+3. Launch the application and click on settings in the menubar, then enter your into the respective fields and click save.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
