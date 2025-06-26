@@ -64,7 +64,7 @@ def save_to_wav_file(
         folder = from_data_dir(save_dir)
         _logger.info("Creating save directory. Directory: %s", save_dir)
         folder.mkdir(exist_ok=True)
-        file = folder / (datetime.now().isoformat() + ".wav")
+        file = folder / (datetime.now().strftime("%Y%m%d_%H%M%S%f")[:-3] + ".wav")
         _logger.info("Saving file. File: %s", file.name)
         stream.save_to_wav_file(str(file))
     except FileExistsError as e:
