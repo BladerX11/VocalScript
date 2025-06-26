@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 )
 
 from azure_service import speak_text_async
+from utils import is_compiled
 from widgets.settings import Settings
 from widgets.status_bar import StatusBar
 
@@ -31,7 +32,7 @@ class MainWindow(QMainWindow):
         self.input_field: QPlainTextEdit = QPlainTextEdit(self)
 
         submit_button = QPushButton("Save", self)
-        submit_button.setIcon(QIcon(self.__get_resource("download.svg")))
+        submit_button.setIcon(QIcon(self._get_resource("download.svg")))
         _ = submit_button.clicked.connect(
             lambda: speak_text_async(self.input_field.toPlainText().strip())
         )
@@ -41,10 +42,10 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(submit_button)
         self.centralWidget().setLayout(main_layout)
 
-    def __get_resource(self, name: str):
+    def _get_resource(self, name: str):
         basedir = Path(__file__).parent.parent
 
-        if "__compiled__" not in globals():
+        if not is_compiled():
             basedir = basedir.parent
 
         return str(basedir / "resources" / name)
