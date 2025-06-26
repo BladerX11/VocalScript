@@ -67,7 +67,7 @@ To get a local copy up and running follow these simple example steps.
 ### Installation
 
 1. Navigate to the [Azure portal](portal.azure.com), then select your speech service resource to view and manage keys and enpoints.
-2. Download the [latest release](https://github.com/BladerX11/vocalscript/release) for the correct OS, and place the file in its own folder.
+2. Download the [latest release](https://github.com/BladerX11/vocalscript/release) for the correct OS, indicated after the application name.
 3. Launch the application and click on settings in the menubar. Enter the key and enpoint obtained earlier and click save.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -78,11 +78,16 @@ To get a local copy up and running follow these simple example steps.
 
 1. Enter the text to be synthesised in the text box.
 2. Click the save button below the text box.
-3. Synthesised audio files will be stored in the folder named saved where your application is, named with the date and time it was synthesised
+3. Synthesised audio files will be stored in a folder named saved where your OS data folder is, named with the date and time it was synthesised
+  1. Windows: C:\Users\<USER>\AppData\Roaming\vocalscript/vocalscript/saved
+  2. Linux: ~/.local/share/vocalscript/vocalscript/saved
+  3. MacOS: ~/Library/Application Support/vocalscript/vocalscript/saved
 
 ### Editing API information
 
-The key and endpoint of your API can be edited either through settings in the menubar, or the vocalscript.ini that will be created at the location of the application after saving settings once.
+The key and endpoint of your API can be edited either through settings in the menubar, or the vocalscript.ini that will be created at the location where you OS stores configurations.
+  1. Linux & MacOS: ~/.config/vocalscript/vocalscript.ini
+  2. Windows: C:\Users\<USER>\AppData\Roaming\vocalscript\vocalscript.ini
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
