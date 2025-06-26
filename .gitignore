@@ -1,5 +1,4 @@
 __pycache__/
 .venv
 dist/
-saved/
-vocalscript.*
+data/
