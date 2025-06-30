@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -13,6 +14,7 @@ from azure_service import speak_text_async
 from utils import is_compiled
 from widgets.settings import Settings
 from widgets.status_bar import StatusBar
+from widgets.voice_selector import VoiceSelector
 
 
 class MainWindow(QMainWindow):
@@ -38,8 +40,9 @@ class MainWindow(QMainWindow):
         )
 
         main_layout: QVBoxLayout = QVBoxLayout(self.centralWidget())
+        main_layout.addWidget(VoiceSelector(self), alignment=Qt.AlignmentFlag.AlignLeft)
         main_layout.addWidget(self.input_field)
-        main_layout.addWidget(submit_button)
+        main_layout.addWidget(submit_button, alignment=Qt.AlignmentFlag.AlignRight)
         self.centralWidget().setLayout(main_layout)
 
     def _get_resource(self, name: str):
