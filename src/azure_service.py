@@ -16,10 +16,10 @@ from utils import from_data_dir
 
 _logger = logging.getLogger(__name__)
 _speech_config = SpeechConfig(
-    subscription=str(settings.value("key")),
-    endpoint=str(settings.value("endpoint")),
+    subscription=settings.value("key") or " ",
+    endpoint=settings.value("endpoint") or " ",
 )
-_speech_config.speech_synthesis_voice_name = str(settings.value("voice"))
+_speech_config.speech_synthesis_voice_name = str(settings.value("voice", ""))
 speech_synthesizer = SpeechSynthesizer(speech_config=_speech_config, audio_config=None)
 
 
