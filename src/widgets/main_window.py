@@ -25,10 +25,15 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(QWidget(self))
         self.setStatusBar(StatusBar(self))
 
+        voice_selector = VoiceSelector(self)
+        _ = voice_selector.status.connect(lambda msg: self.statusBar().showMessage(msg))
+
+        settings = Settings(self)
+        _ = settings.accepted.connect(lambda: voice_selector.load_voices())
         _ = (
             self.menuBar()
             .addAction("&Settings")
-            .triggered.connect(lambda: Settings(self).open())
+            .triggered.connect(lambda: settings.open())
         )
 
         self.input_field: QPlainTextEdit = QPlainTextEdit(self)
@@ -40,7 +45,7 @@ class MainWindow(QMainWindow):
         )
 
         main_layout: QVBoxLayout = QVBoxLayout(self.centralWidget())
-        main_layout.addWidget(VoiceSelector(self), alignment=Qt.AlignmentFlag.AlignLeft)
+        main_layout.addWidget(voice_selector, alignment=Qt.AlignmentFlag.AlignLeft)
         main_layout.addWidget(self.input_field)
         main_layout.addWidget(submit_button, alignment=Qt.AlignmentFlag.AlignRight)
         self.centralWidget().setLayout(main_layout)
