@@ -1,16 +1,20 @@
 import logging
 from datetime import datetime
+import re
 
 from azure.cognitiveservices.speech import (
     AudioDataStream,
     CancellationReason,
+    PropertyId,
     SpeechConfig,
     SpeechSynthesisEventArgs,
     SpeechSynthesisResult,
     SpeechSynthesizer,
+    SynthesisVoicesResult,
 )
 from azure.cognitiveservices.speech.diagnostics.logging import EventLogger
 
+from exceptions import MissingInformationError
 from settings import settings
 from utils import from_data_dir
 
@@ -47,6 +51,14 @@ speech_synthesizer.synthesis_completed.connect(
 speech_synthesizer.synthesis_canceled.connect(_synthesis_canceled)
 
 
+def _has_information():
+    properties = speech_synthesizer.properties
+    return (
+        properties.get_property(PropertyId.SpeechServiceConnection_Key).strip()
+        and properties.get_property(PropertyId.SpeechServiceConnection_Endpoint).strip()
+    )
+
+
 def speak_text_async(text: str):
     _logger.info("Synthesising. Text: %s", text)
     speech_synthesizer.speak_text_async(text)
@@ -80,7 +92,7 @@ def save_to_wav_file(
             "Creating save directory failed. Error: %s", e.strerror, exc_info=e
         )
         msg = "Creating Save directory failed. Filesystem error."
-    except Exception as e:
+    except RuntimeError as e:
         _logger.error("Saving failed.", exc_info=e)
         msg = "Saving failed. Check log."
     else:
@@ -88,3 +100,30 @@ def save_to_wav_file(
         msg = "Saving completed."
 
     return msg
+
+
+def get_voices():
+    _logger.info("Getting voices")
+    if _has_information():
+        voices: list[tuple[str, str]] = []
+        try:
+            voices_result = speech_synthesizer.get_voices_async().get()
+
+            if isinstance(voices_result, SynthesisVoicesResult):
+                for voice in voices_result.voices:
+                    name_split = voice.short_name.split("-")
+                    voices.append(
+                        (
+                            f"{' '.join(re.findall(r'[A-Z]+(?=[A-Z][a-z])|[A-Z][a-z]+|[A-Z]+|[a-z]+', name_split[2]))} ({'-'.join(name_split[:2])}) ({voice.gender.name})",
+                            voice.short_name,
+                        )
+                    )
+
+            _logger.info("%d voices retrieved.", len(voices))
+            return voices
+        except RuntimeError as e:
+            _logger.error("Failed to get voices.", exc_info=e)
+            raise RuntimeError
+    else:
+        _logger.error("Service information is missing.")
+        raise MissingInformationError
