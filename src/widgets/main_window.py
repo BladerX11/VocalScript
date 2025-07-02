@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from azure_service import speak_text_async
+from exceptions import MissingInformationError
 from utils import is_compiled
 from widgets.settings import Settings
 from widgets.status_bar import StatusBar
@@ -40,9 +41,7 @@ class MainWindow(QMainWindow):
 
         submit_button = QPushButton("Save", self)
         submit_button.setIcon(QIcon(self._get_resource("download.svg")))
-        _ = submit_button.clicked.connect(
-            lambda: speak_text_async(self.input_field.toPlainText().strip())
-        )
+        _ = submit_button.clicked.connect(self._on_submit)
 
         main_layout: QVBoxLayout = QVBoxLayout(self.centralWidget())
         main_layout.addWidget(voice_selector, alignment=Qt.AlignmentFlag.AlignLeft)
@@ -57,3 +56,11 @@ class MainWindow(QMainWindow):
             basedir = basedir.parent
 
         return str(basedir / "resources" / name)
+
+    def _on_submit(self):
+        try:
+            speak_text_async(self.input_field.toPlainText().strip())
+        except MissingInformationError:
+            self.statusBar().showMessage(
+                "Service information required to generate audio."
+            )

@@ -61,7 +61,11 @@ def _has_information():
 
 def speak_text_async(text: str):
     _logger.info("Synthesising. Text: %s", text)
-    speech_synthesizer.speak_text_async(text)
+    if _has_information():
+        speech_synthesizer.speak_text_async(text)
+    else:
+        _logger.error("Service information is missing.")
+        raise MissingInformationError
 
 
 def save_to_wav_file(
