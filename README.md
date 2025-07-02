@@ -79,15 +79,16 @@ To get a local copy up and running follow these simple example steps.
 1. Enter the text to be synthesised in the text box.
 2. Click the save button below the text box.
 3. Synthesised audio files will be stored in a folder named saved where your OS data folder is, named with the date and time it was synthesised
-  1. Windows: C:\Users\<USER>\AppData\Roaming\vocalscript/vocalscript/saved
-  2. Linux: ~/.local/share/vocalscript/vocalscript/saved
-  3. MacOS: ~/Library/Application Support/vocalscript/vocalscript/saved
+    * Windows: C:\Users\<USER>\AppData\Roaming\vocalscript/vocalscript/saved
+    * Linux: ~/.local/share/vocalscript/vocalscript/saved
+    * MacOS: ~/Library/Application Support/vocalscript/vocalscript/saved
 
 ### Editing API information
 
 The key and endpoint of your API can be edited either through settings in the menubar, or the vocalscript.ini that will be created at the location where you OS stores configurations.
-  1. Linux & MacOS: ~/.config/vocalscript/vocalscript.ini
-  2. Windows: C:\Users\<USER>\AppData\Roaming\vocalscript\vocalscript.ini
+
+* Linux & MacOS: ~/.config/vocalscript/vocalscript.ini
+* Windows: C:\Users\<USER>\AppData\Roaming\vocalscript\vocalscript.ini
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
