@@ -1,4 +1,3 @@
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QMainWindow,
     QVBoxLayout,
@@ -12,6 +11,8 @@ from widgets.voice_selector import VoiceSelector
 
 
 class MainWindow(QMainWindow):
+    """Main application window."""
+
     def __init__(self):
         super().__init__()
 

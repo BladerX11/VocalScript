@@ -28,6 +28,11 @@ speech_synthesizer = SpeechSynthesizer(speech_config=_speech_config, audio_confi
 
 
 def _log(msg: str):
+    """Log a message at the appropriate level based on its content.
+
+    Args:
+        msg (str): The message to log. If 'INFO' in msg, logs as info; if 'ERROR' in msg, logs as error.
+    """
     if "INFO" in msg:
         _logger.info(msg)
     elif "ERROR" in msg:
@@ -35,6 +40,11 @@ def _log(msg: str):
 
 
 def _synthesis_canceled(event: SpeechSynthesisEventArgs):
+    """Handle synthesis canceled events by logging based on cancellation reason.
+
+    Args:
+        event (SpeechSynthesisEventArgs): The event containing synthesis cancellation details.
+    """
     cancellation_details = event.result.cancellation_details
     if cancellation_details.reason == CancellationReason.Error:
         _logger.error(
@@ -52,6 +62,11 @@ speech_synthesizer.synthesis_canceled.connect(_synthesis_canceled)
 
 
 def _has_information():
+    """Check if speech service key and endpoint information are set in the synthesizer properties.
+
+    Returns:
+        bool: True if both key and endpoint properties are non-empty strings.
+    """
     properties = speech_synthesizer.properties
     return (
         properties.get_property(PropertyId.SpeechServiceConnection_Key).strip()
@@ -60,6 +75,14 @@ def _has_information():
 
 
 def speak_text_async(text: str):
+    """Asynchronously synthesize speech for the given text.
+
+    Args:
+        text (str): The text to synthesize.
+
+    Raises:
+        MissingInformationError: If service key or endpoint information is missing.
+    """
     _logger.info("Synthesising. Text: %s", text)
     if _has_information():
         speech_synthesizer.speak_text_async(text)
@@ -71,6 +94,14 @@ def speak_text_async(text: str):
 def save_to_wav_file(
     result: SpeechSynthesisResult,
 ):
+    """Save a speech synthesis result to a WAV file in the data directory.
+
+    Args:
+        result (SpeechSynthesisResult): The speech synthesis result to save.
+
+    Returns:
+        str: A message indicating the outcome of the save operation.
+    """
     stream = AudioDataStream(result)
     save_dir = "saved"
 
@@ -107,6 +138,15 @@ def save_to_wav_file(
 
 
 def get_voices():
+    """Retrieve available voices from the speech service.
+
+    Returns:
+        list[tuple[str, str]]: A list of tuples containing voice display names and their service names.
+
+    Raises:
+        MissingInformationError: If service key or endpoint information is missing.
+        RuntimeError: If retrieving voices fails at runtime.
+    """
     _logger.info("Getting voices")
     if _has_information():
         voices: list[tuple[str, str]] = []
