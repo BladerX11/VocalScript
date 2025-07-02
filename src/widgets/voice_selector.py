@@ -36,6 +36,7 @@ class VoiceSelector(QWidget):
         layout = QHBoxLayout(self)
         layout.addWidget(QLabel("Voice"))
         layout.addWidget(self.combobox)
+        layout.addStretch()
         self.setLayout(layout)
 
     def load_voices(self):
