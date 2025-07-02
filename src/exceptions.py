@@ -1,2 +1,2 @@
 class MissingInformationError(Exception):
-    """Required service information not set"""
+    """Required service information is missing"""

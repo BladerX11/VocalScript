@@ -14,6 +14,8 @@ from settings import settings
 
 
 class VoiceSelector(QWidget):
+    """Widget to select speech synthesis voice."""
+
     status: Signal = Signal(str)
 
     def __init__(self, parent: QWidget | None = None):
@@ -40,6 +42,10 @@ class VoiceSelector(QWidget):
         self.setLayout(layout)
 
     def load_voices(self):
+        """Fetch voices from the speech service and populate the combobox.
+
+        Emits status bar messages if retrieval fails or no voices returned.
+        """
         _ = self.combobox.currentIndexChanged.disconnect(self._on_current_index_changed)
         self.combobox.clear()
 
@@ -72,6 +78,11 @@ class VoiceSelector(QWidget):
 
     @Slot(int)
     def _on_current_index_changed(self, idx: int):
+        """Handle combobox index change: update stored voice setting and synthesizer voice.
+
+        Args:
+            idx (int): New index selected in combobox.
+        """
         data: str = self.combobox.itemData(idx)
         settings.setValue("voice", data)
         speech_synthesizer.properties.set_property(

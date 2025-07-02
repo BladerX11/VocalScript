@@ -16,6 +16,8 @@ from utils import is_compiled
 
 
 class Input(QWidget):
+    """Widget for text input and triggering speech synthesis."""
+
     status: Signal = Signal(str)
 
     def __init__(self, parent: QWidget | None = None):
@@ -45,6 +47,14 @@ class Input(QWidget):
         self.setLayout(layout)
 
     def _get_resource(self, name: str):
+        """Resolve the path to a resource file, adjusting for compiled mode.
+
+        Args:
+            name (str): Filename of the resource.
+
+        Returns:
+            str: Full filesystem path to the resource file.
+        """
         basedir = Path(__file__).parent.parent
 
         if not is_compiled():
@@ -53,6 +63,8 @@ class Input(QWidget):
         return str(basedir / "resources" / name)
 
     def _on_submit(self):
+        """Handle the submit button click by synthesizing speech or emitting error status.
+        """
         try:
             speak_text_async(self.input_field.toPlainText().strip())
         except MissingInformationError:

@@ -15,6 +15,8 @@ from settings import settings
 
 
 class Settings(QDialog):
+    """Dialog to configure speech service key and endpoint settings."""
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setWindowTitle("Settings")
@@ -47,6 +49,7 @@ class Settings(QDialog):
 
     @override
     def accept(self):
+        """Save the entered key and endpoint to persistent settings and update synthesizer properties."""
         new_key = self.key_input.text()
         new_endpoint = self.endpoint_input.text()
         settings.setValue("key", new_key)
