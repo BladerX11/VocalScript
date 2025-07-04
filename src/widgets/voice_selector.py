@@ -6,10 +6,9 @@ from PySide6.QtWidgets import (
     QLabel,
     QWidget,
 )
-from azure.cognitiveservices.speech import PropertyId
 
-from azure_service import get_voices, speech_synthesizer
 from exceptions import MissingInformationError
+from services.tts_service import TtsService
 from settings import settings
 
 
@@ -48,9 +47,10 @@ class VoiceSelector(QWidget):
         """
         _ = self.combobox.currentIndexChanged.disconnect(self._on_current_index_changed)
         self.combobox.clear()
+        service = TtsService.get_service()
 
         try:
-            voices = get_voices()
+            voices = service.voices
 
             if len(voices) == 0:
                 self.status.emit(
@@ -61,12 +61,15 @@ class VoiceSelector(QWidget):
             for name, code in voices:
                 self.combobox.addItem(name, code)
 
-            if settings.contains("voice"):
-                idx = self.combobox.findData(settings.value("voice"))
-                self.combobox.setCurrentIndex(idx)
+            voice_key = service.type().value + "/voice"
+
+            if settings.contains(voice_key):
+                idx = self.combobox.findData(settings.value(voice_key))
 
                 if idx == -1:
                     self.status.emit("Saved voice is invalid.")
+                else:
+                    self.combobox.setCurrentIndex(idx)
         except RuntimeError:
             self.status.emit("Loading voices failed. Check logs.")
         except MissingInformationError:
@@ -84,7 +87,6 @@ class VoiceSelector(QWidget):
             idx (int): New index selected in combobox.
         """
         data: str = self.combobox.itemData(idx)
-        settings.setValue("voice", data)
-        speech_synthesizer.properties.set_property(
-            PropertyId.SpeechServiceConnection_SynthVoice, data
-        )
+        service = TtsService.get_service()
+        settings.setValue(service.type().value + "/voice", data)
+        service.voice = data
