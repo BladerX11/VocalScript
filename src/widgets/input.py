@@ -10,8 +10,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from azure_service import speak_text_async
 from exceptions import MissingInformationError
+from services.tts_service import TtsService
 from utils import is_compiled
 
 
@@ -63,9 +63,10 @@ class Input(QWidget):
         return str(basedir / "resources" / name)
 
     def _on_submit(self):
-        """Handle the submit button click by synthesizing speech or emitting error status.
-        """
+        """Handle the submit button click by synthesizing speech or emitting error status."""
         try:
-            speak_text_async(self.input_field.toPlainText().strip())
+            TtsService.get_service().save_to_file(
+                self.input_field.toPlainText().strip(), self.status.emit
+            )
         except MissingInformationError:
             self.status.emit("Service information required to generate audio.")
