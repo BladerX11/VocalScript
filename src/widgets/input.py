@@ -35,6 +35,7 @@ class Input(QWidget):
         bottom_layout.addWidget(submit_button)
 
         self.input_field: QPlainTextEdit = QPlainTextEdit(self)
+        self.input_field.setPlaceholderText("Enter text to synthesise...")
         _ = self.input_field.textChanged.connect(
             lambda: character_count.setText(
                 f"Characters: {len(self.input_field.toPlainText())}"
