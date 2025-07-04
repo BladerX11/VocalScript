@@ -1,12 +1,12 @@
 from PySide6.QtWidgets import (
     QMainWindow,
+    QStatusBar,
     QVBoxLayout,
     QWidget,
 )
 
 from widgets.input import Input
 from widgets.settings import Settings
-from widgets.status_bar import StatusBar
 from widgets.voice_selector import VoiceSelector
 
 
@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("VocalScript")
         self.setCentralWidget(QWidget(self))
-        self.setStatusBar(StatusBar(self))
+        self.setStatusBar(QStatusBar())
 
         voice_selector = VoiceSelector(self.centralWidget())
         _ = voice_selector.status.connect(lambda msg: self.statusBar().showMessage(msg))
