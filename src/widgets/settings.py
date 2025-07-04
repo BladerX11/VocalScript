@@ -35,6 +35,7 @@ class Settings(QDialog):
 
         form: QWidget = QWidget(self)
         self.form_layout: QFormLayout = QFormLayout()
+        self.form_layout.addRow("&Service", self.service_selector)
         form.setLayout(self.form_layout)
 
         self.reset_form()
@@ -49,7 +50,6 @@ class Settings(QDialog):
         _ = buttons.rejected.connect(self.reject)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(self.service_selector)
         layout.addWidget(form)
         layout.addWidget(buttons)
         self.setLayout(layout)
@@ -60,8 +60,8 @@ class Settings(QDialog):
         self.field_keys.clear()
         fields = TtsService.get_setting_fields_for(self.selected_service)
 
-        while self.form_layout.rowCount() > 0:
-            self.form_layout.removeRow(0)
+        while self.form_layout.rowCount() > 1:
+            self.form_layout.removeRow(1)
 
         for field in fields:
             editor = QLineEdit(self)
