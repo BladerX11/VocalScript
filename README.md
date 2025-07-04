@@ -68,7 +68,13 @@ To get a local copy up and running follow these simple example steps.
 
 1. Navigate to the [Azure portal](portal.azure.com), then select your speech service resource to view its keys and enpoints.
 2. Download the [latest release](https://github.com/BladerX11/vocalscript/releases/latest) for the correct OS, indicated after the application name.
+
+    ![OS indication on release page](assets/release.webp)
+
 3. Launch the application and click on settings in the menubar, then enter your into the respective fields and click save.
+
+    ![Settings button in app](assets/enter-settings.webp)
+    ![Settings dialog](assets/settings.webp)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -78,6 +84,9 @@ To get a local copy up and running follow these simple example steps.
 
 1. Enter the text to be synthesised in the text box.
 2. Click the save button below the text box.
+
+    ![Save button in app](assets/save.webp)
+
 3. Synthesised audio files will be stored in a folder named saved where your OS data folder is, named with the date and time it was synthesised
     * Windows: C:\Users\<USER>\AppData\Roaming\vocalscript/vocalscript/saved
     * Linux: ~/.local/share/vocalscript/vocalscript/saved
