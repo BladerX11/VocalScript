@@ -83,5 +83,5 @@ class TtsService(ABC):
         pass
 
     @abstractmethod
-    def save_to_file(self, text: str, show_status: Callable[[str], None]):
+    def save_to_file_async(self, text: str, show_status: Callable[[str], None]):
         pass
