@@ -70,18 +70,27 @@ class TtsService(ABC):
     @property
     @abstractmethod
     def voices(self) -> list[tuple[str, str]]:
+        """Returns a list of available voices for the TTS service."""
         pass
 
     @property
     @abstractmethod
     def voice(self) -> str:
+        """Returns the currently selected voice for the TTS service.""" 
         pass
 
     @voice.setter
     @abstractmethod
     def voice(self, voice: str):
+        """Sets the currently selected voice for the TTS service."""
         pass
 
     @abstractmethod
     def save_to_file_async(self, text: str, show_status: Callable[[str], None]):
+        """Saves the text to a file asynchronously.
+        
+        Args:
+            text (str): The text to be converted to speech.
+            show_status (Callable[[str], None]): A callback function to show status updates.
+        """
         pass
