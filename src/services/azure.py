@@ -138,10 +138,14 @@ class Azure(TtsService):
             _logger.error("Failed to get voices. Check logs", exc_info=e)
             raise e
 
+    def _clear_callbacks(self):
+        self.speech_synthesizer.synthesis_started.disconnect_all()
+        self.speech_synthesizer.synthesis_completed.disconnect_all()
+        self.speech_synthesizer.synthesis_canceled.disconnect_all()
+
     def _create_synthesis_started(self, show_status: Callable[[str], None]):
         def synthesis_started(_: SpeechSynthesisEventArgs):
             show_status("Synthesising.")
-            self.speech_synthesizer.synthesis_started.disconnect_all()
 
         return synthesis_started
 
@@ -185,7 +189,7 @@ class Azure(TtsService):
                 msg = "Saving completed."
 
             show_status(msg)
-            self.speech_synthesizer.synthesis_completed.disconnect_all()
+            self._clear_callbacks()
 
         return synthesis_completed
 
@@ -204,7 +208,7 @@ class Azure(TtsService):
                 msg = "Synthesis canceled."
 
             show_status(msg)
-            self.speech_synthesizer.synthesis_canceled.disconnect_all()
+            self._clear_callbacks()
 
         return synthesis_canceled
 
