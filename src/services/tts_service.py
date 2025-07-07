@@ -115,3 +115,29 @@ class TtsService(ABC):
             MissingInformationError: If the service information is not set.
         """
         pass
+
+    @abstractmethod
+    def play_text_async(self, text: str, show_status: Callable[[str], None]):
+        """Plays the text asynchronously.
+
+        Args:
+            text (str): The text to be converted to speech.
+            show_status (Callable[[str], None]): A callback function to show status updates.
+
+        Raises:
+            MissingInformationError: If the service information is not set.
+        """
+        pass
+
+    @abstractmethod
+    def play_ssml_async(self, ssml: str, show_status: Callable[[str], None]):
+        """Plays the SSML asynchronously.
+
+        Args:
+            ssml (str): The SSML to be converted to speech.
+            show_status (Callable[[str], None]): A callback function to show status updates.
+
+        Raises:
+            MissingInformationError: If the service information is not set.
+        """
+        pass
