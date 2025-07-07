@@ -159,8 +159,8 @@ class Azure(TtsService):
         def synthesis_completed(event: SpeechSynthesisEventArgs):
             _logger.info("Synthesis completed")
             show_status("Saving.")
-            stream = AudioDataStream(event.result)
             save_dir = "saved"
+            file = None
 
             try:
                 folder = from_data_dir(save_dir)
@@ -170,25 +170,23 @@ class Azure(TtsService):
                     datetime.now().strftime("%Y%m%d_%H%M%S%f")[:-3] + ".wav"
                 )
                 _logger.info("Saving file. File: %s", file.name)
-                stream.save_to_wav_file(str(file))
+
+                with file.open("xb") as f:
+                    _ = f.write(event.result.audio_data)
             except FileExistsError as e:
-                _logger.error(
-                    "Creating save directory failed. Error: %s", e.strerror, exc_info=e
-                )
-                msg = f"Creating save directory failed. Folder {save_dir} already exists as a file. Please move it and try again."
+                _logger.error("Saving failed. Error: %s", e.strerror, exc_info=e)
+                target = f"File {file.name}" if file else f"Folder {save_dir}"
+                msg = f"Saving failed. {target} already exists. Please move it and try again."
+            except IsADirectoryError as e:
+                _logger.error("Saving failed. Error: %s", e.strerror, exc_info=e)
+                msg = f"Saving failed. File {file} already exists. Please try again."
             except PermissionError as e:
-                _logger.error(
-                    "Creating save directory failed. Error: %s", e.strerror, exc_info=e
-                )
-                msg = "Creating save directory failed. Insufficient Permissions."
+                _logger.error("Saving failed. Error: %s", e.strerror, exc_info=e)
+                target = f"File {file.name}" if file else f"Folder {save_dir}"
+                msg = f"Saving failed. Insufficient permissions for {target}."
             except OSError as e:
-                _logger.error(
-                    "Creating save directory failed. Error: %s", e.strerror, exc_info=e
-                )
-                msg = "Creating Save directory failed. Filesystem error."
-            except RuntimeError as e:
-                _logger.error("Saving failed.", exc_info=e)
-                msg = "Saving failed. Check log."
+                _logger.error("Saving failed. Error: %s", e.strerror, exc_info=e)
+                msg = "Saving failed. Filesystem error."
             else:
                 _logger.info("Saving completed")
                 msg = "Saving completed."
@@ -206,7 +204,7 @@ class Azure(TtsService):
 
             if not self.buffer.open(QIODevice.OpenModeFlag.ReadOnly):
                 _logger.error("Opening data failed")
-                show_status("Playing failed.")
+                show_status("Playing failed. Could not open data")
 
             self.player.setSourceDevice(self.buffer)
 
