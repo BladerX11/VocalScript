@@ -63,6 +63,7 @@ To get a local copy up and running follow these simple example steps.
 ### Prerequisites
 
 1. An [Azure subscription](https://azure.microsoft.com/free/cognitive-services) and an [AI Services resource](https://portal.azure.com/#create/Microsoft.CognitiveServicesAIFoundry)
+2. [ffmpeg](https://ffmpeg.org/download.html) on linux
 
 ### Installation
 
@@ -87,10 +88,28 @@ To get a local copy up and running follow these simple example steps.
 
     ![Save button in app](assets/save.webp)
 
-3. Synthesised audio files will be stored in a folder named saved where your OS data folder is, named with the date and time it was synthesised
+3. Audio files will be saved in a folder named saved where your OS data folder is, named with the date and time it was synthesised.
     * Windows: C:\Users\<USER>\AppData\Roaming\vocalscript/vocalscript/saved
     * Linux: ~/.local/share/vocalscript/vocalscript/saved
     * MacOS: ~/Library/Application Support/vocalscript/vocalscript/saved
+    
+### Playing audio
+
+1. Enter the text to be synthesised in the text box.
+2. Click the play button below the text box.
+
+    ![Play button in app](assets/play.webp)
+
+3. The audio will be played through the default audio output of the system.
+
+### Using SSML
+
+1. Enter the SSML content to be synthesised in the text box. (Note: The selected voice above the text box will be ignored with SSML)
+2. Check the SSML checkbox below the text box.
+
+    ![SSML checkbox in app](assets/ssml.webp)
+  
+3. Click the buttons to play or save. The text content will be parsed as SSML.
 
 ### Editing API information
 
