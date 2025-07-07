@@ -2,11 +2,10 @@ from datetime import datetime
 import logging
 import re
 from typing import Callable, override
-from PySide6.QtCore import QBuffer, QByteArray, QIODevice
+from PySide6.QtCore import QBuffer, QIODevice
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from azure.cognitiveservices.speech import (
-    AudioDataStream,
     CancellationReason,
     PropertyId,
     SpeechConfig,
@@ -34,7 +33,7 @@ class Azure(TtsService):
         self.output: QAudioOutput = QAudioOutput()
         self.player: QMediaPlayer = QMediaPlayer()
         self.player.setAudioOutput(self.output)
-        self.buffer: QBuffer = QBuffer()
+        self.buffer: QBuffer
 
         def _log(msg: str):
             if "INFO" in msg:
@@ -200,7 +199,8 @@ class Azure(TtsService):
         def synthesis_completed(event: SpeechSynthesisEventArgs):
             _logger.info("Synthesis completed")
             _logger.info("Playing audio")
-            self.buffer.setData(QByteArray(event.result.audio_data))
+            self.buffer = QBuffer()
+            self.buffer.setData(event.result.audio_data)
 
             if not self.buffer.open(QIODevice.OpenModeFlag.ReadOnly):
                 _logger.error("Opening data failed")
@@ -209,6 +209,7 @@ class Azure(TtsService):
             self.player.setSourceDevice(self.buffer)
 
             self.player.play()
+            self.buffer.close()
             self._clear_callbacks()
 
         return synthesis_completed
