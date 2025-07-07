@@ -2,6 +2,8 @@ from datetime import datetime
 import logging
 import re
 from typing import Callable, override
+from PySide6.QtCore import QBuffer, QByteArray, QIODevice
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from azure.cognitiveservices.speech import (
     AudioDataStream,
@@ -29,6 +31,10 @@ class Azure(TtsService):
         self.speech_synthesizer: SpeechSynthesizer = SpeechSynthesizer(
             speech_config=speech_config, audio_config=None
         )
+        self.output: QAudioOutput = QAudioOutput()
+        self.player: QMediaPlayer = QMediaPlayer()
+        self.player.setAudioOutput(self.output)
+        self.buffer: QBuffer = QBuffer()
 
         def _log(msg: str):
             if "INFO" in msg:
@@ -149,12 +155,11 @@ class Azure(TtsService):
 
         return synthesis_started
 
-    def _create_synthesis_completed(self, show_status: Callable[[str], None]):
+    def _create_file(self, show_status: Callable[[str], None]):
         def synthesis_completed(event: SpeechSynthesisEventArgs):
             _logger.info("Synthesis completed")
-            result = event.result
             show_status("Saving.")
-            stream = AudioDataStream(result)
+            stream = AudioDataStream(event.result)
             save_dir = "saved"
 
             try:
@@ -193,6 +198,23 @@ class Azure(TtsService):
 
         return synthesis_completed
 
+    def _create_play(self, show_status: Callable[[str], None]):
+        def synthesis_completed(event: SpeechSynthesisEventArgs):
+            _logger.info("Synthesis completed")
+            _logger.info("Playing audio")
+            self.buffer.setData(QByteArray(event.result.audio_data))
+
+            if not self.buffer.open(QIODevice.OpenModeFlag.ReadOnly):
+                _logger.error("Opening data failed")
+                show_status("Playing failed.")
+
+            self.player.setSourceDevice(self.buffer)
+
+            self.player.play()
+            self._clear_callbacks()
+
+        return synthesis_completed
+
     def _create_synthesis_canceled(self, show_status: Callable[[str], None]):
         def synthesis_canceled(event: SpeechSynthesisEventArgs):
             cancellation_details = event.result.cancellation_details
@@ -212,36 +234,52 @@ class Azure(TtsService):
 
         return synthesis_canceled
 
-    @override
-    def save_text_to_file_async(self, text: str, show_status: Callable[[str], None]):
-        _logger.info("Synthesising. Text: %s", text)
-        self._check_information()
-
+    def _create_file_callbacks(self, show_status: Callable[[str], None]):
         self.speech_synthesizer.synthesis_started.connect(
             self._create_synthesis_started(show_status)
         )
         self.speech_synthesizer.synthesis_completed.connect(
-            self._create_synthesis_completed(show_status)
+            self._create_file(show_status)
         )
         self.speech_synthesizer.synthesis_canceled.connect(
             self._create_synthesis_canceled(show_status)
         )
 
+    def _create_play_callbacks(self, show_status: Callable[[str], None]):
+        self.speech_synthesizer.synthesis_started.connect(
+            self._create_synthesis_started(show_status)
+        )
+        self.speech_synthesizer.synthesis_completed.connect(
+            self._create_play(show_status)
+        )
+        self.speech_synthesizer.synthesis_canceled.connect(
+            self._create_synthesis_canceled(show_status)
+        )
+
+    @override
+    def save_text_to_file_async(self, text: str, show_status: Callable[[str], None]):
+        _logger.info("Synthesising. Text: %s", text)
+        self._check_information()
+        self._create_file_callbacks(show_status)
         self.speech_synthesizer.speak_text_async(text)
 
     @override
     def save_ssml_to_file_async(self, ssml: str, show_status: Callable[[str], None]):
         _logger.info("Synthesising. SSML: %s", ssml)
         self._check_information()
+        self._create_file_callbacks(show_status)
+        self.speech_synthesizer.speak_ssml_async(ssml)
 
-        self.speech_synthesizer.synthesis_started.connect(
-            self._create_synthesis_started(show_status)
-        )
-        self.speech_synthesizer.synthesis_completed.connect(
-            self._create_synthesis_completed(show_status)
-        )
-        self.speech_synthesizer.synthesis_canceled.connect(
-            self._create_synthesis_canceled(show_status)
-        )
+    @override
+    def play_text_async(self, text: str, show_status: Callable[[str], None]):
+        _logger.info("Synthesising. Text: %s", text)
+        self._check_information()
+        self._create_play_callbacks(show_status)
+        self.speech_synthesizer.speak_text_async(text)
 
+    @override
+    def play_ssml_async(self, ssml: str, show_status: Callable[[str], None]):
+        _logger.info("Synthesising. SSML: %s", ssml)
+        self._check_information()
+        self._create_play_callbacks(show_status)
         self.speech_synthesizer.speak_ssml_async(ssml)
