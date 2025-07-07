@@ -48,6 +48,7 @@ class Input(QWidget):
         )
 
         play_button = QPushButton("Play", self)
+        play_button.setIcon(QIcon(self._get_resource("play.svg")))
         _ = play_button.clicked.connect(self._on_play)
 
         save_button = QPushButton("Save", self)
