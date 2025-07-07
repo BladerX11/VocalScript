@@ -28,6 +28,7 @@ command = [
     "--enable-plugin=pyside6",
     "--output-dir=dist",
     f"--output-filename={name}",
+    "--include-qt-plugins=multimedia",
     "--include-package=azure.cognitiveservices.speech",
     "--include-data-dir=resources=resources",
     "src/main.py",
