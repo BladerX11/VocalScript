@@ -1,7 +1,8 @@
 from pathlib import Path
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
+    QCheckBox,
     QHBoxLayout,
     QLabel,
     QPlainTextEdit,
@@ -12,6 +13,7 @@ from PySide6.QtWidgets import (
 
 from exceptions import MissingInformationError
 from services.tts_service import TtsService
+from settings import settings
 from utils import is_compiled
 
 
@@ -23,17 +25,6 @@ class Input(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        submit_button = QPushButton("Save", self)
-        submit_button.setIcon(QIcon(self._get_resource("download.svg")))
-        _ = submit_button.clicked.connect(self._on_submit)
-
-        character_count = QLabel(self, text="Characters: 0")
-
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(character_count)
-        bottom_layout.addStretch()
-        bottom_layout.addWidget(submit_button)
-
         self.input_field: QPlainTextEdit = QPlainTextEdit(self)
         self.input_field.setPlaceholderText("Enter text to synthesise...")
         _ = self.input_field.textChanged.connect(
@@ -41,6 +32,30 @@ class Input(QWidget):
                 f"Characters: {len(self.input_field.toPlainText())}"
             )
         )
+
+        character_count = QLabel(self, text="Characters: 0")
+
+        self.use_ssml: QCheckBox = QCheckBox("Use SSML", self)
+        self.use_ssml.setCheckState(
+            Qt.CheckState.Checked
+            if settings.value("use_ssml", False, bool)
+            else Qt.CheckState.Unchecked
+        )
+        _ = self.use_ssml.stateChanged.connect(
+            lambda state: settings.setValue(
+                "use_ssml", state == Qt.CheckState.Checked.value
+            )
+        )
+
+        submit_button = QPushButton("Save", self)
+        submit_button.setIcon(QIcon(self._get_resource("download.svg")))
+        _ = submit_button.clicked.connect(self._on_submit)
+
+        bottom_layout = QHBoxLayout()
+        bottom_layout.addWidget(character_count)
+        bottom_layout.addStretch()
+        bottom_layout.addWidget(self.use_ssml)
+        bottom_layout.addWidget(submit_button)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.input_field)
@@ -65,9 +80,15 @@ class Input(QWidget):
 
     def _on_submit(self):
         """Handle the submit button click by synthesizing speech or emitting error status."""
+        input = self.input_field.toPlainText().strip()
         try:
-            TtsService.get_service().save_text_to_file_async(
-                self.input_field.toPlainText().strip(), self.status.emit
-            )
+            if self.use_ssml.isChecked():
+                TtsService.get_service().save_ssml_to_file_async(
+                    input, self.status.emit
+                )
+            else:
+                TtsService.get_service().save_text_to_file_async(
+                    input, self.status.emit
+                )
         except MissingInformationError:
             self.status.emit("Service information required to generate audio.")
