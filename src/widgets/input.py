@@ -66,7 +66,7 @@ class Input(QWidget):
     def _on_submit(self):
         """Handle the submit button click by synthesizing speech or emitting error status."""
         try:
-            TtsService.get_service().save_to_file_async(
+            TtsService.get_service().save_text_to_file_async(
                 self.input_field.toPlainText().strip(), self.status.emit
             )
         except MissingInformationError:

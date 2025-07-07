@@ -213,7 +213,7 @@ class Azure(TtsService):
         return synthesis_canceled
 
     @override
-    def save_to_file_async(self, text: str, show_status: Callable[[str], None]):
+    def save_text_to_file_async(self, text: str, show_status: Callable[[str], None]):
         _logger.info("Synthesising. Text: %s", text)
         self._check_information()
 
@@ -228,3 +228,20 @@ class Azure(TtsService):
         )
 
         self.speech_synthesizer.speak_text_async(text)
+
+    @override
+    def save_ssml_to_file_async(self, ssml: str, show_status: Callable[[str], None]):
+        _logger.info("Synthesising. SSML: %s", ssml)
+        self._check_information()
+
+        self.speech_synthesizer.synthesis_started.connect(
+            self._create_synthesis_started(show_status)
+        )
+        self.speech_synthesizer.synthesis_completed.connect(
+            self._create_synthesis_completed(show_status)
+        )
+        self.speech_synthesizer.synthesis_canceled.connect(
+            self._create_synthesis_canceled(show_status)
+        )
+
+        self.speech_synthesizer.speak_ssml_async(ssml)
