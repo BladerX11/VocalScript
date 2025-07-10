@@ -1,3 +1,4 @@
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (
     QMainWindow,
     QStatusBar,
@@ -20,21 +21,28 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(QWidget(self))
         self.setStatusBar(QStatusBar())
 
-        voice_selector = VoiceSelector(self.centralWidget())
-        _ = voice_selector.status.connect(lambda msg: self.statusBar().showMessage(msg))
+        self.voice_selector = VoiceSelector(self.centralWidget())
+        _ = self.voice_selector.status.connect(
+            lambda msg: self.statusBar().showMessage(msg)
+        )
 
         settings = Settings(self)
-        _ = settings.accepted.connect(lambda: voice_selector.load_voices())
+        _ = settings.accepted.connect(self._on_setting_accept)
         _ = (
             self.menuBar()
             .addAction("&Settings")
             .triggered.connect(lambda: settings.open())
         )
 
-        input = Input(self.centralWidget())
-        _ = input.status.connect(lambda msg: self.statusBar().showMessage(msg))
+        self.input = Input(self.centralWidget())
+        _ = self.input.status.connect(lambda msg: self.statusBar().showMessage(msg))
 
         main_layout: QVBoxLayout = QVBoxLayout(self.centralWidget())
-        main_layout.addWidget(voice_selector)
-        main_layout.addWidget(input)
+        main_layout.addWidget(self.voice_selector)
+        main_layout.addWidget(self.input)
         self.centralWidget().setLayout(main_layout)
+
+    @Slot()
+    def _on_setting_accept(self):
+        self.voice_selector.load_voices()
+        self.input.check_ssml()

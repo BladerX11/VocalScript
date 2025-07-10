@@ -1,5 +1,6 @@
 from pathlib import Path
-from PySide6.QtCore import Signal, Qt
+
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -12,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from exceptions import MissingInformationError
+from services.ssml_service import SsmlService
 from services.tts_service import TtsService
 from settings import settings
 from utils import is_compiled
@@ -46,6 +48,7 @@ class Input(QWidget):
                 "use_ssml", state == Qt.CheckState.Checked.value
             )
         )
+        self.check_ssml()
 
         play_button = QPushButton("Play", self)
         play_button.setIcon(QIcon(self._get_resource("play.svg")))
@@ -102,11 +105,18 @@ class Input(QWidget):
     def _on_play(self):
         """Handle the play button click by synthesizing speech or emitting error status."""
         input = self.input_field.toPlainText().strip()
+        service = TtsService.get_service()
 
         try:
-            if self.use_ssml.isChecked():
-                TtsService.get_service().play_ssml_async(input, self.status.emit)
+            if self.use_ssml.isChecked() and isinstance(service, SsmlService):
+                service.play_ssml_async(input, self.status.emit)
             else:
-                TtsService.get_service().play_text_async(input, self.status.emit)
+                service.play_text_async(input, self.status.emit)
         except MissingInformationError:
             self.status.emit("Service information required to generate audio.")
+
+    def check_ssml(self):
+        if isinstance(TtsService.get_service(), SsmlService):
+            self.use_ssml.setEnabled(True)
+        else:
+            self.use_ssml.setEnabled(False)

@@ -17,12 +17,13 @@ from PySide6.QtCore import QBuffer, QIODevice
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from exceptions import MissingInformationError
-from services.tts_service import Services, TtsService
+from services.ssml_service import SsmlService
+from services.tts_service import Services
 
 _logger = logging.getLogger(__name__)
 
 
-class Azure(TtsService[SpeechSynthesisEventArgs]):
+class Azure(SsmlService[SpeechSynthesisEventArgs]):
     def __init__(self, subscription: str, endpoint: str, voice: str):
         speech_config = SpeechConfig(subscription=subscription, endpoint=endpoint)
         speech_config.speech_synthesis_voice_name = voice
