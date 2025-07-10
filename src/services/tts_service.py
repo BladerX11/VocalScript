@@ -29,7 +29,7 @@ class TtsService(Generic[T], ABC):
         """Returns existing instance or creates one based on saved type from settings."""
         if cls._current_service is None:
             try:
-                service = Services(settings.value("tts_service/type"))
+                service = Services(settings.value("service"))
             except ValueError:
                 _logger.error(
                     "Restoring service from settings failed. Defaulting to Azure."
