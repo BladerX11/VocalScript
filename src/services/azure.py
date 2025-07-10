@@ -1,9 +1,7 @@
-from datetime import datetime
 import logging
 import re
+from pathlib import Path
 from typing import Callable, override
-from PySide6.QtCore import QBuffer, QIODevice
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from azure.cognitiveservices.speech import (
     CancellationReason,
@@ -15,15 +13,16 @@ from azure.cognitiveservices.speech import (
     VoiceInfo,
 )
 from azure.cognitiveservices.speech.diagnostics.logging import EventLogger
+from PySide6.QtCore import QBuffer, QIODevice
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from exceptions import MissingInformationError
 from services.tts_service import Services, TtsService
-from utils import from_data_dir
 
 _logger = logging.getLogger(__name__)
 
 
-class Azure(TtsService):
+class Azure(TtsService[SpeechSynthesisEventArgs]):
     def __init__(self, subscription: str, endpoint: str, voice: str):
         speech_config = SpeechConfig(subscription=subscription, endpoint=endpoint)
         speech_config.speech_synthesis_voice_name = voice
@@ -52,6 +51,13 @@ class Azure(TtsService):
     @override
     def setting_fields(cls):
         return ["key", "endpoint"]
+
+    @classmethod
+    @override
+    def _save_implementation(cls, file: Path, data: SpeechSynthesisEventArgs):
+        _logger.info("Saving file. File: %s", file.name)
+        with file.open("xb") as f:
+            _ = f.write(data.result.audio_data)
 
     @property
     def key(self) -> str:
@@ -156,48 +162,14 @@ class Azure(TtsService):
 
     def _create_file(self, show_status: Callable[[str], None]):
         def synthesis_completed(event: SpeechSynthesisEventArgs):
-            _logger.info("Synthesis completed")
             show_status("Saving.")
-            save_dir = "saved"
-            file = None
-
-            try:
-                folder = from_data_dir(save_dir)
-                _logger.info("Creating save directory. Directory: %s", save_dir)
-                folder.mkdir(exist_ok=True)
-                file = folder / (
-                    datetime.now().strftime("%Y%m%d_%H%M%S%f")[:-3] + ".wav"
-                )
-                _logger.info("Saving file. File: %s", file.name)
-
-                with file.open("xb") as f:
-                    _ = f.write(event.result.audio_data)
-            except FileExistsError as e:
-                _logger.error("Saving failed. Error: %s", e.strerror, exc_info=e)
-                target = f"File {file.name}" if file else f"Folder {save_dir}"
-                msg = f"Saving failed. {target} already exists. Please move it and try again."
-            except IsADirectoryError as e:
-                _logger.error("Saving failed. Error: %s", e.strerror, exc_info=e)
-                msg = f"Saving failed. File {file} already exists. Please try again."
-            except PermissionError as e:
-                _logger.error("Saving failed. Error: %s", e.strerror, exc_info=e)
-                target = f"File {file.name}" if file else f"Folder {save_dir}"
-                msg = f"Saving failed. Insufficient permissions for {target}."
-            except OSError as e:
-                _logger.error("Saving failed. Error: %s", e.strerror, exc_info=e)
-                msg = "Saving failed. Filesystem error."
-            else:
-                _logger.info("Saving completed")
-                msg = "Saving completed."
-
-            show_status(msg)
+            show_status(self.save_audio(event))
             self._clear_callbacks()
 
         return synthesis_completed
 
     def _create_play(self, show_status: Callable[[str], None]):
         def synthesis_completed(event: SpeechSynthesisEventArgs):
-            _logger.info("Synthesis completed")
             _logger.info("Playing audio")
             self.buffer = QBuffer()
             self.buffer.setData(event.result.audio_data)
