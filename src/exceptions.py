@@ -1,2 +1,2 @@
-class MissingInformationError(Exception):
-    """Required service information is missing"""
+class SynthesisException(Exception):
+    """Error during synthesis."""

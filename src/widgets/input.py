@@ -12,7 +12,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from exceptions import MissingInformationError
 from services.ssml_service import SsmlService
 from services.tts_service import TtsService
 from settings import settings
@@ -89,31 +88,22 @@ class Input(QWidget):
     def _on_save(self):
         """Handle the submit button click by synthesizing speech or emitting error status."""
         input = self.input_field.toPlainText().strip()
+        service = TtsService.get_service()
 
-        try:
-            if self.use_ssml.isChecked():
-                TtsService.get_service().save_ssml_to_file_async(
-                    input, self.status.emit
-                )
-            else:
-                TtsService.get_service().save_text_to_file_async(
-                    input, self.status.emit
-                )
-        except MissingInformationError:
-            self.status.emit("Service information required to generate audio.")
+        if self.use_ssml.isChecked() and isinstance(service, SsmlService):
+            service.save_ssml_to_file(input, self.status.emit)
+        else:
+            service.save_text_to_file(input, self.status.emit)
 
     def _on_play(self):
         """Handle the play button click by synthesizing speech or emitting error status."""
         input = self.input_field.toPlainText().strip()
         service = TtsService.get_service()
 
-        try:
-            if self.use_ssml.isChecked() and isinstance(service, SsmlService):
-                service.play_ssml_async(input, self.status.emit)
-            else:
-                service.play_text_async(input, self.status.emit)
-        except MissingInformationError:
-            self.status.emit("Service information required to generate audio.")
+        if self.use_ssml.isChecked() and isinstance(service, SsmlService):
+            service.play_ssml(input, self.status.emit)
+        else:
+            service.play_text(input, self.status.emit)
 
     def check_ssml(self):
         if isinstance(TtsService.get_service(), SsmlService):

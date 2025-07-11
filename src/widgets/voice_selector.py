@@ -7,7 +7,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from exceptions import MissingInformationError
 from services.tts_service import TtsService
 from settings import settings
 
@@ -49,35 +48,28 @@ class VoiceSelector(QWidget):
         self.combobox.clear()
         service = TtsService.get_service()
 
-        try:
-            voices = service.voices
+        voices = service.voices
 
-            if len(voices) == 0:
-                self.status.emit(
-                    "No voices retrieved. Ensure service information is correct."
-                )
-                return
-
-            for name, code in voices:
-                self.combobox.addItem(name, code)
-
-            voice_key = service.type().value + "/voice"
-
-            if settings.contains(voice_key):
-                idx = self.combobox.findData(settings.value(voice_key))
-
-                if idx == -1:
-                    self.status.emit("Saved voice is invalid.")
-                else:
-                    self.combobox.setCurrentIndex(idx)
-        except RuntimeError:
-            self.status.emit("Loading voices failed. Check logs.")
-        except MissingInformationError:
-            self.status.emit("Service information required to get voices.")
-        finally:
-            _ = self.combobox.currentIndexChanged.connect(
-                self._on_current_index_changed
+        if len(voices) == 0:
+            self.status.emit(
+                "No voices retrieved. Ensure service information is correct."
             )
+            return
+
+        for name, code in voices:
+            self.combobox.addItem(name, code)
+
+        voice_key = service.type().value + "/voice"
+
+        if settings.contains(voice_key):
+            idx = self.combobox.findData(settings.value(voice_key))
+
+            if idx == -1:
+                self.status.emit("Saved voice is invalid.")
+            else:
+                self.combobox.setCurrentIndex(idx)
+
+        _ = self.combobox.currentIndexChanged.connect(self._on_current_index_changed)
 
     @Slot(int)
     def _on_current_index_changed(self, idx: int):

@@ -6,6 +6,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Callable, Generic, TypeVar
 
+from PySide6.QtCore import QBuffer, QIODevice
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+
+from exceptions import SynthesisException
 from settings import settings
 from utils import from_data_dir
 
@@ -20,9 +24,10 @@ class Services(Enum):
 class TtsService(Generic[T], ABC):
     _current_service: "TtsService[object] | None" = None
 
-    @abstractmethod
     def __init__(self, *args: str):
-        pass
+        """Initialize the TTS service by setting up the media player and audio output."""
+        self.player: QMediaPlayer = QMediaPlayer()
+        self.player.setAudioOutput(QAudioOutput(self.player))
 
     @classmethod
     def get_service(cls) -> "TtsService[object]":
@@ -56,7 +61,14 @@ class TtsService(Generic[T], ABC):
 
     @classmethod
     def get_setting_fields_for(cls, service: Services):
-        """Return setting_fields for a given service type."""
+        """Retrieve the list of configurable setting keys for a specific TTS service.
+
+        Args:
+            service (Services): The enum value representing the TTS service.
+
+        Returns:
+            list[str]: The list of setting field names required by the service.
+        """
         return cls._get_service_class(service).setting_fields()
 
     @classmethod
@@ -74,38 +86,136 @@ class TtsService(Generic[T], ABC):
     @classmethod
     @abstractmethod
     def _save_implementation(cls, file: Path, data: T):
-        """Saves the audio to the file
+        """Saves audio data to a file.
 
         Args:
-        file (Path): The file path where the audio will be saved.
-        data (T): The audio data to be saved.
+            file (Path): The file path where the audio will be saved.
+            data (T): The audio data to be saved.
 
         Raises:
-        FileExistsError: If there is a file where the save directory or file is.
-        IsADirectoryError If there is a directory where the save file is.
-        PermissionError: If the save directory or file cannot be created due to lack of permissions.
-        OSError: If there is an error creating the save directory.
+            FileExistsError: If a file already exists at the target path.
+            IsADirectoryError: If the target path is a directory.
+            PermissionError: If lacking permissions to create or write the file.
+            OSError: For other filesystem errors.
         """
         pass
 
-    @classmethod
-    def save_audio(cls, data: T) -> str:
-        """Creates save directory and saves audio to a file, handling its errors.
+    @property
+    @abstractmethod
+    def voices(self) -> list[tuple[str, str]]:
+        """Returns a list of available voices for the TTS service and the string the service recognises it by."""
+        pass
 
-        Args:
-        data (T): The audio data to be saved.
+    @property
+    @abstractmethod
+    def voice(self) -> str:
+        """Gets the currently selected voice for the TTS service.
 
         Returns:
-        msg (str): A message indicating the result of the save operation.
+            str: The short name of the currently selected voice.
         """
+        pass
+
+    @voice.setter
+    @abstractmethod
+    def voice(self, voice: str):
+        """Sets the currently selected voice for the TTS service."""
+        pass
+
+    @abstractmethod
+    def _synthesise_text_implementation(self, text: str) -> T:
+        """Synthesises plain text to audio data.
+
+        Args:
+            text (str): The text to be converted to speech.
+
+        Returns:
+            T: The audio data resulting from synthesis.
+
+        Raises:
+            SynthesisException: If there is an error during synthesis.
+        """
+        pass
+
+    @abstractmethod
+    def _get_wav_bytes(self, data: T) -> bytes:
+        """Convert synthesized audio data to WAV byte format for playback.
+
+        Args:
+            data (T): The raw audio data returned by the synthesis implementation.
+
+        Returns:
+            bytes: The synthesized audio encoded in WAV format.
+        """
+        pass
+
+    @abstractmethod
+    def _has_information(self) -> bool:
+        """Checks if the service has the necessary information to function.
+
+        Returns:
+            bool: True if the service has the necessary information, False otherwise.
+        """
+        pass
+
+    def _perform_synthesis(
+        self,
+        label: str,
+        input_str: str,
+        synth: Callable[[str], T],
+        show_status: Callable[[str], None],
+    ) -> T | None:
+        """Perform synthesis of input, checking configuration and handling synthesis errors.
+
+        Args:
+            label (str): A label describing the input type (e.g., 'Text' or 'SSML').
+            input_str (str): The string to synthesise.
+            synth (Callable[[str], T]): The low-level synthesis function to call.
+            show_status (Callable[[str], None]): Callback to report status messages.
+
+        Returns:
+            Optional[T]: The synthesized audio data, or None if synthesis failed or configuration is missing.
+        """
+        _logger.info("Synthesising. %s: %s", label, input_str)
+        if not self._has_information():
+            show_status("Service information required to generate audio.")
+            return None
+        show_status("Synthesising.")
+        try:
+            return synth(input_str)
+        except SynthesisException as e:
+            _logger.error("Synthesis failed: %s", str(e), exc_info=e)
+            show_status(str(e))
+            return None
+
+    def _synth_and_save(
+        self,
+        label: str,
+        input_str: str,
+        synth: Callable[[str], T],
+        show_status: Callable[[str], None],
+    ):
+        """Generic helper to synthesise input and save the result to a WAV file.
+
+        Args:
+            label (str): A label describing the input type (e.g., 'Text' or 'SSML').
+            input_str (str): The string to synthesise.
+            synth (Callable[[str], T]): The low-level synthesis function to call.
+            show_status (Callable[[str], None]): Callback to report status messages.
+        """
+        data = self._perform_synthesis(label, input_str, synth, show_status)
+        if data is None:
+            return
         save_dir = "saved"
         file = None
+        show_status("Saving.")
+
         try:
             folder = from_data_dir(save_dir)
             _logger.info("Creating save directory. Directory: %s", save_dir)
             folder.mkdir(exist_ok=True)
             file = folder / (datetime.now().strftime("%Y%m%d_%H%M%S%f")[:-3] + ".wav")
-            cls._save_implementation(file, data)
+            self._save_implementation(file, data)
         except FileExistsError as e:
             _logger.error("Saving failed. Error: %s", e.strerror, exc_info=e)
             target = f"File {file.name}" if file else f"Folder {save_dir}"
@@ -126,53 +236,57 @@ class TtsService(Generic[T], ABC):
             _logger.info("Saving completed")
             msg = "Saving completed."
 
-        return msg
+        show_status(msg)
 
-    @property
-    @abstractmethod
-    def voices(self) -> list[tuple[str, str]]:
-        """Returns a list of available voices for the TTS service."""
-        pass
+    def _synth_and_play(
+        self,
+        label: str,
+        input_str: str,
+        synth: Callable[[str], T],
+        show_status: Callable[[str], None],
+    ):
+        """Generic helper to synthesise input and play the resulting audio.
 
-    @property
-    @abstractmethod
-    def voice(self) -> str:
-        """Returns the currently selected voice for the TTS service.
-
-        Returns:
-            MissingInformationError: If the service information is not set.
-            RuntimeError: If error occurs while retrieving the voice.
+        Args:
+            label (str): A label describing the input type (e.g., 'Text' or 'SSML').
+            input_str (str): The string to synthesise.
+            synth (Callable[[str], T]): The low-level synthesis function to call.
+            show_status (Callable[[str], None]): Callback to report status messages.
         """
-        pass
+        data = self._perform_synthesis(label, input_str, synth, show_status)
+        if data is None:
+            return
+        _logger.info("Playing audio.")
 
-    @voice.setter
-    @abstractmethod
-    def voice(self, voice: str):
-        """Sets the currently selected voice for the TTS service."""
-        pass
+        buffer = QBuffer(self.player)
+        buffer.setData(self._get_wav_bytes(data))
 
-    @abstractmethod
-    def save_text_to_file_async(self, text: str, show_status: Callable[[str], None]):
+        if not buffer.open(QIODevice.OpenModeFlag.ReadOnly):
+            _logger.error("Playing failed. Could not open buffer for reading.")
+            show_status("Playing failed. IO error.")
+
+        self.player.setSourceDevice(buffer)
+        self.player.play()
+        buffer.close()
+
+    def save_text_to_file(self, text: str, show_status: Callable[[str], None]):
         """Saves the text to a file asynchronously.
 
         Args:
             text (str): The text to be converted to speech.
             show_status (Callable[[str], None]): A callback function to show status updates.
-
-        Raises:
-            MissingInformationError: If the service information is not set.
         """
-        pass
+        self._synth_and_save(
+            "Text", text, self._synthesise_text_implementation, show_status
+        )
 
-    @abstractmethod
-    def play_text_async(self, text: str, show_status: Callable[[str], None]):
+    def play_text(self, text: str, show_status: Callable[[str], None]):
         """Plays the text asynchronously.
 
         Args:
             text (str): The text to be converted to speech.
             show_status (Callable[[str], None]): A callback function to show status updates.
-
-        Raises:
-            MissingInformationError: If the service information is not set.
         """
-        pass
+        self._synth_and_play(
+            "Text", text, self._synthesise_text_implementation, show_status
+        )
