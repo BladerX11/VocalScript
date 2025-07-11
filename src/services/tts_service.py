@@ -19,6 +19,7 @@ T = TypeVar("T")
 
 class Services(Enum):
     AZURE = "azure"
+    KOKORO = "kokoro"
 
 
 class TtsService(Generic[T], ABC):
@@ -47,17 +48,32 @@ class TtsService(Generic[T], ABC):
 
     @classmethod
     def _get_service_class(cls, service: Services) -> type["TtsService[object]"]:
-        if service == Services.AZURE:
-            return getattr(importlib.import_module("services.azure"), "Azure")
+        """Return the TtsService subclass for the given service type.
+
+        Args:
+            service (Services): The enum value representing the desired service.
+
+        Returns:
+            type[TtsService]: The TtsService subclass corresponding to the service.
+        """
+        match service:
+            case Services.AZURE:
+                return getattr(importlib.import_module("services.azure"), "Azure")
+            case Services.KOKORO:
+                return getattr(importlib.import_module("services.kokoro"), "Kokoro")
 
     @classmethod
     def switch(cls, service: Services):
         """Switches to a new TtsService instance for the given type."""
-        cls._current_service = cls._get_service_class(service)(
-            settings.value("azure/key") or " ",
-            settings.value("azure/endpoint") or " ",
-            str(settings.value("azure/voice", "")),
-        )
+        match service:
+            case Services.AZURE:
+                cls._current_service = cls._get_service_class(service)(
+                    settings.value("azure/key") or " ",
+                    settings.value("azure/endpoint") or " ",
+                    str(settings.value("azure/voice", "")),
+                )
+            case Services.KOKORO:
+                cls._current_service = cls._get_service_class(service)()
 
     @classmethod
     def get_setting_fields_for(cls, service: Services):
