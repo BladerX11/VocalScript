@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 from PySide6.QtCore import QStandardPaths
 
@@ -9,7 +10,7 @@ def is_compiled():
     Returns:
         bool: True if running as a compiled executable, False otherwise.
     """
-    return "__compiled__" in globals()
+    return hasattr(sys, "_MEIPASS")
 
 
 def from_data_dir(path: str | None = None):
