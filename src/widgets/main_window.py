@@ -33,6 +33,7 @@ class MainWindow(QMainWindow):
 
         self.settings: Settings = Settings(self)
         _ = self.settings.accepted.connect(self.on_settings_accept)
+        _ = self.settings.status.connect(self.statusBar().showMessage)
         _ = (
             self.menuBar()
             .addAction("&Settings")
