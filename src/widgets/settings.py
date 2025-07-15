@@ -1,5 +1,6 @@
 from typing import override
 
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QShowEvent
 from PySide6.QtWidgets import (
     QComboBox,
@@ -37,14 +38,14 @@ class Settings(QDialog):
         self.form_layout: QFormLayout = QFormLayout()
         self.form_layout.addRow("&Service", self.service_selector)
         form.setLayout(self.form_layout)
-
         self.reset_form()
 
         buttons = QDialogButtonBox(
             (
                 QDialogButtonBox.StandardButton.Save
                 | QDialogButtonBox.StandardButton.Cancel
-            )
+            ),
+            self,
         )
         _ = buttons.accepted.connect(self.accept)
         _ = buttons.rejected.connect(self.reject)
@@ -96,5 +97,4 @@ class Settings(QDialog):
             settings.setValue(self.field_keys[field], value)
 
         settings.setValue("service", self.selected_service.value)
-        TtsService.switch(self.selected_service)
         super().accept()

@@ -48,7 +48,6 @@ class Input(QWidget):
                 "use_ssml", state == Qt.CheckState.Checked.value
             )
         )
-        self.check_ssml()
 
         play_button = QPushButton("Play", self)
         play_button.setIcon(QIcon(self._get_resource("play.svg")))
