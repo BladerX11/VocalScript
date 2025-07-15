@@ -62,17 +62,15 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-1. An [Azure subscription](https://azure.microsoft.com/free/cognitive-services) and an [AI Services resource](https://portal.azure.com/#create/Microsoft.CognitiveServicesAIFoundry)
-2. [ffmpeg](https://ffmpeg.org/download.html) on linux
+1. [ffmpeg](https://ffmpeg.org/download.html) on linux for direct playback.
 
 ### Installation
 
-1. Navigate to the [Azure portal](portal.azure.com), then select your speech service resource to view its keys and enpoints.
-2. Download the [latest release](https://github.com/BladerX11/vocalscript/releases/latest) for the correct OS, indicated after the application name.
+1. Download the [latest release](https://github.com/BladerX11/vocalscript/releases/latest) for the correct OS, indicated after the application name.
 
     ![OS indication on release page](assets/release.webp)
 
-3. Launch the application and click on settings in the menubar, then enter your into the respective fields and click save.
+2. Launch the application and click on settings in the menubar, then select your prefered service and enter your information and click save.
 
     ![Settings button in app](assets/enter-settings.webp)
     ![Settings dialog](assets/settings.webp)
@@ -81,6 +79,16 @@ To get a local copy up and running follow these simple example steps.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+### Setting up services
+#### Azure
+
+1. Create [Azure subscription](https://azure.microsoft.com/free/cognitive-services) and an [AI Services resource](https://portal.azure.com/#create/Microsoft.CognitiveServicesAIFoundry)
+2. Navigate to the [Azure portal](portal.azure.com), then select your speech service resource to view its keys and endpoints.
+
+#### Kokoro
+
+As this is a local model, no information is required. However, the model and voices will be downloaded and cached locally when selecting it for the first time. This will take some time.
+
 ### Saving audio
 
 1. Enter the text to be synthesised in the text box.
@@ -102,7 +110,7 @@ To get a local copy up and running follow these simple example steps.
 
 3. The audio will be played through the default audio output of the system.
 
-### Using SSML
+### Using SSML (for select services)
 
 1. Enter the SSML content to be synthesised in the text box. (Note: The selected voice above the text box will be ignored with SSML)
 2. Check the SSML checkbox below the text box.
@@ -111,9 +119,9 @@ To get a local copy up and running follow these simple example steps.
   
 3. Click the buttons to play or save. The text content will be parsed as SSML.
 
-### Editing API information
+### Editing service information
 
-The key and endpoint of your API can be edited either through settings in the menubar, or the vocalscript.ini that will be created at the location where you OS stores configurations.
+The service information can be edited either through settings in the menubar, or the vocalscript.ini file that will be created at the location where you OS stores configurations.
 
 * Linux & MacOS: ~/.config/vocalscript/vocalscript.ini
 * Windows: C:\Users\<USER>\AppData\Roaming\vocalscript\vocalscript.ini
