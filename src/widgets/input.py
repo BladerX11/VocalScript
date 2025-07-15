@@ -16,6 +16,7 @@ from services.ssml_service import SsmlService
 from services.tts_service import TtsService
 from settings import settings
 from utils import is_compiled
+from widgets.task_worker import dispatch
 
 
 class Input(QWidget):
@@ -87,25 +88,32 @@ class Input(QWidget):
 
     def _on_save(self):
         """Handle the submit button click by synthesizing speech or emitting error status."""
-        input = self.input_field.toPlainText().strip()
         service = TtsService.get_service()
-
-        if self.use_ssml.isChecked() and isinstance(service, SsmlService):
-            service.save_ssml_to_file(input, self.status.emit)
-        else:
-            service.save_text_to_file(input, self.status.emit)
+        fn = (
+            service.save_ssml_to_file
+            if (self.use_ssml.isChecked() and isinstance(service, SsmlService))
+            else service.save_text_to_file
+        )
+        dispatch(
+            self,
+            lambda: fn(self.input_field.toPlainText().strip(), self.status.emit),
+        )
 
     def _on_play(self):
         """Handle the play button click by synthesizing speech or emitting error status."""
-        input = self.input_field.toPlainText().strip()
         service = TtsService.get_service()
-
-        if self.use_ssml.isChecked() and isinstance(service, SsmlService):
-            service.play_ssml(input, self.status.emit)
-        else:
-            service.play_text(input, self.status.emit)
+        fn = (
+            service.play_ssml
+            if (self.use_ssml.isChecked() and isinstance(service, SsmlService))
+            else service.play_text
+        )
+        dispatch(
+            self,
+            lambda: fn(self.input_field.toPlainText().strip(), self.status.emit),
+        )
 
     def check_ssml(self):
+        """Enable or disable SSML checkbox based on service support."""
         if isinstance(TtsService.get_service(), SsmlService):
             self.use_ssml.setEnabled(True)
         else:
