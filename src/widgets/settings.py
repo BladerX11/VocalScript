@@ -1,6 +1,6 @@
 from typing import override
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Signal, Slot
 from PySide6.QtGui import QShowEvent
 from PySide6.QtWidgets import (
     QComboBox,
@@ -18,6 +18,8 @@ from settings import settings
 
 class Settings(QDialog):
     """Dialog to configure speech service key and endpoint settings."""
+
+    status: Signal = Signal(str)
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -72,13 +74,25 @@ class Settings(QDialog):
             self.field_keys[field] = key
             self.form_layout.addRow(f"&{field.capitalize()}", editor)
 
+    @Slot(int)
     def on_service_changed(self, index: int):
         """Updates selected service and rebuilds fields."""
         self.selected_service = self.service_selector.itemData(index)
         self.build_form()
 
     def reset_form(self):
-        self.selected_service = TtsService.get_service().type()
+        """
+        Reset form fields based on saved service in QSettings. Uses default for new users.
+        """
+        try:
+            service = Services(settings.value("service"))
+        except ValueError:
+            self.status.emit(
+                "Loading saved service failed. Invalid service. Using default service."
+            )
+            service = TtsService.DEFAULT_SERVICE
+
+        self.selected_service = service
         self.service_selector.setCurrentIndex(
             self.service_selector.findData(self.selected_service)
         )
