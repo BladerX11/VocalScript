@@ -62,7 +62,7 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-1. [ffmpeg](https://ffmpeg.org/download.html) on linux for direct playback.
+1. [ffmpeg](https://ffmpeg.org/download.html): Direct playback for linux
 
 ### Installation
 
@@ -86,6 +86,8 @@ To get a local copy up and running follow these simple example steps.
 2. Navigate to the [Azure portal](portal.azure.com), then select your speech service resource to view its keys and endpoints.
 
 #### Kokoro
+
+1. Download [espeak-ng](https://github.com/espeak-ng/espeak-ng/blob/master/docs/guide.md). Needed for some english words and non-english languages, or they will be skipped.
 
 As this is a local model, no information is required. However, the model and voices will be downloaded and cached locally when selecting it for the first time. This will take some time.
 
