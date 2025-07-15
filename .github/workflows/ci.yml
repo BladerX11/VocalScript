@@ -22,7 +22,7 @@ jobs:
         if: matrix.container == 'debian:oldstable'
         run: |
           apt update
-          apt install -y g++
+          apt install -y g++ cmake
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
