@@ -18,9 +18,14 @@ _logger = logging.getLogger(__name__)
 class Kokoro(TtsService[Tensor]):
     SAMPLE_RATE: int = 24000
 
-    def __init__(self):
+    def __init__(self, voice: str = "af_heart"):
+        """Initialize the Kokoro TTS service.
+
+        Args:
+            voice (str): The voice to use for synthesis. Defaults to "af_heart".
+        """
         super().__init__()
-        self.voice = "af_heart"
+        self.voice = voice
 
     @classmethod
     @override
@@ -72,7 +77,7 @@ class Kokoro(TtsService[Tensor]):
     @override
     def voice(self, voice: str):
         self._voice: str = voice
-        self.pipeline: KPipeline = KPipeline(lang_code=self._voice[0])
+        self.pipeline: KPipeline = KPipeline(self._voice[0])
 
     @override
     def _synthesise_text_implementation(self, text: str) -> Tensor:
