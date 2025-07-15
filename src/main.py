@@ -10,7 +10,6 @@ import sys  # noqa: E402
 from utils import from_data_dir  # noqa: E402
 from widgets.main_window import MainWindow  # noqa: E402
 
-app = QApplication(sys.argv)
 try:
     logging.basicConfig(
         filename=str(from_data_dir("vocalscript.log")), level=logging.INFO
@@ -22,5 +21,8 @@ except OSError as e:
         exc_info=e,
     )
 
-MainWindow().show()
+app = QApplication(sys.argv)
+main_window = MainWindow()
+main_window.show()
+main_window.on_settings_accept()
 sys.exit(app.exec())
