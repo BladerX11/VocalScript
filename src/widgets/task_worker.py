@@ -51,8 +51,13 @@ def dispatch(
     _ = worker.moveToThread(thread)
 
     if error_slot:
-        _ = worker.error.connect(error_slot)
-        _ = worker.error.connect(lambda _: _workers.remove(worker))
+        worker.error.connect(error_slot)
+    else:
+
+        def raise_error(e: Exception):
+            raise e
+
+        worker.error.connect(raise_error)
 
     if finished_slot:
         _ = worker.finished.connect(finished_slot)
