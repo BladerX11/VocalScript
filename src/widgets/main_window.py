@@ -65,6 +65,7 @@ class MainWindow(QMainWindow):
             self,
             switch_service,
             finished_slot=self._on_services_switched,
+            error_slot=self._on_services_switch_error,
         )
         _ = self._msg_box.exec()
 
@@ -78,3 +79,10 @@ class MainWindow(QMainWindow):
         self.input.check_ssml()
         self.voice_selector.load_voices(voices)
         self._msg_box.accept()
+
+    @Slot(Exception)
+    def _on_services_switch_error(self, error: Exception):
+        self.statusBar().showMessage(
+            "Setting up service failed. Please select service and try again"
+        )
+        self._msg_box.reject()
