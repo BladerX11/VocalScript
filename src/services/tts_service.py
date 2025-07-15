@@ -1,13 +1,13 @@
 import importlib
 import logging
+import tempfile
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Callable, Generic, TypeVar
 
-from PySide6.QtCore import QBuffer, QIODevice
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from playsound3 import AVAILABLE_BACKENDS, playsound
 
 from exceptions import SynthesisException
 from settings import settings
@@ -24,27 +24,10 @@ class Services(Enum):
 
 class TtsService(Generic[T], ABC):
     _current_service: "TtsService[object] | None" = None
+    DEFAULT_SERVICE: Services = Services.AZURE
 
     def __init__(self, *args: str):
         """Initialize the TTS service by setting up the media player and audio output."""
-        self.player: QMediaPlayer = QMediaPlayer()
-        self.player.setAudioOutput(QAudioOutput(self.player))
-
-    @classmethod
-    def get_service(cls) -> "TtsService[object]":
-        """Returns existing instance or creates one based on saved type from settings."""
-        if cls._current_service is None:
-            try:
-                service = Services(settings.value("service"))
-            except ValueError:
-                _logger.error(
-                    "Restoring service from settings failed. Defaulting to Azure."
-                )
-                service = Services.AZURE
-            cls.switch(service)
-            assert cls._current_service is not None, "Service should be initialized."
-
-        return cls._current_service
 
     @classmethod
     def _get_service_class(cls, service: Services) -> type["TtsService[object]"]:
@@ -73,7 +56,26 @@ class TtsService(Generic[T], ABC):
                     str(settings.value("azure/voice", "")),
                 )
             case Services.KOKORO:
-                cls._current_service = cls._get_service_class(service)()
+                cls._current_service = cls._get_service_class(service)(
+                    settings.value("kokoro/voice")
+                )
+
+    @classmethod
+    def get_service(cls) -> "TtsService[object]":
+        """Returns existing instance or creates one based on saved type from settings."""
+        if cls._current_service is None:
+            try:
+                service = Services(settings.value("service"))
+            except ValueError:
+                _logger.error(
+                    f"Restoring service from settings failed. Defaulting to {cls.DEFAULT_SERVICE.name.capitalize()}."
+                )
+                service = TtsService.DEFAULT_SERVICE
+
+            cls.switch(service)
+            assert cls._current_service is not None, "Service should be initialized."
+
+        return cls._current_service
 
     @classmethod
     def get_setting_fields_for(cls, service: Services):
@@ -119,7 +121,7 @@ class TtsService(Generic[T], ABC):
     @property
     @abstractmethod
     def voices(self) -> list[tuple[str, str]]:
-        """Returns a list of available voices for the TTS service and the string the service recognises it by."""
+        """Returns a list of available voices for the TTS service and the string the service recognises it by. External data may need to be fetched."""
         pass
 
     @property
@@ -274,16 +276,15 @@ class TtsService(Generic[T], ABC):
             return
         _logger.info("Playing audio.")
 
-        buffer = QBuffer(self.player)
-        buffer.setData(self._get_wav_bytes(data))
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            _ = tmp.write(self._get_wav_bytes(data))
+            tmp.flush()
+            tmp_path = Path(tmp.name)
 
-        if not buffer.open(QIODevice.OpenModeFlag.ReadOnly):
-            _logger.error("Playing failed. Could not open buffer for reading.")
-            show_status("Playing failed. IO error.")
-
-        self.player.setSourceDevice(buffer)
-        self.player.play()
-        buffer.close()
+        _ = playsound(
+            tmp_path, True, "ffplay" if "ffplay" in AVAILABLE_BACKENDS else None
+        )
+        tmp_path.unlink()
 
     def save_text_to_file(self, text: str, show_status: Callable[[str], None]):
         """Saves the text to a file asynchronously.
