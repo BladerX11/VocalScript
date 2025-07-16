@@ -29,7 +29,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - name: Install dependencies
-        run: uv sync --locked
+        run: uv sync --quiet --locked
       - name: Build
         run: uv run scripts/build.py
       - name: Upload artifact
