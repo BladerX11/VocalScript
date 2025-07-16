@@ -15,19 +15,21 @@ except (FileNotFoundError, TOMLDecodeError) as e:
     sys.exit(1)
 
 command = [
-    "src/main.py",
-    "-F",
-    "-w",
-    "-n=vocalscript",
-    f"--add-data=resources{';' if sys.platform == 'win32' else ':'}resources",
-    "--hidden-import=services.azure",
-    "--hidden-import=services.kokoro",
-    "--collect-binaries=azure.cognitiveservices.speech",
-    "--collect-data=language_tags",
-    "--collect-data=espeakng_loader",
-    "--collect-data=misaki",
-    "--collect-all=en_core_web_sm",
-    "--collect-all=en_core_web_trf",
+    "vocalscript.spec"
+    # add a.binaries = [b for b in a.binaries if not b[0].endswith("libstdc++.so.6")] after generating
+    # "src/main.py",
+    # "-F",
+    # "-w",
+    # "-n=vocalscript",
+    # f"--add-data=resources{';' if sys.platform == 'win32' else ':'}resources",
+    # "--hidden-import=services.azure",
+    # "--hidden-import=services.kokoro",
+    # "--collect-binaries=azure.cognitiveservices.speech",
+    # "--collect-data=language_tags",
+    # "--collect-data=espeakng_loader",
+    # "--collect-data=misaki",
+    # "--collect-all=en_core_web_sm",
+    # "--collect-all=en_core_web_trf",
 ]
 
 PyInstaller.__main__.run(command)
