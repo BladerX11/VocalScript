@@ -15,7 +15,8 @@ except (FileNotFoundError, TOMLDecodeError) as e:
     sys.exit(1)
 
 command = [
-    "vocalscript.spec"
+    "--log-level=WARN",
+    "vocalscript.spec",
     # add a.binaries = [b for b in a.binaries if not b[0].endswith("libstdc++.so.6")] after generating
     # "src/main.py",
     # "-F",
