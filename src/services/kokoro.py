@@ -18,7 +18,7 @@ _logger = logging.getLogger(__name__)
 class Kokoro(TtsService[Tensor]):
     SAMPLE_RATE: int = 24000
 
-    def __init__(self, voice: str = "af_heart"):
+    def __init__(self, voice: str):
         """Initialize the Kokoro TTS service.
 
         Args:
