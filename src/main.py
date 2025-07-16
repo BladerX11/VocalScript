@@ -5,10 +5,8 @@ QApplication.setOrganizationName("vocalscript")
 QApplication.setApplicationDisplayName("VocalScript")
 
 import logging  # noqa: E402
-import sys  # noqa: E402
 
 from utils import from_data_dir  # noqa: E402
-from widgets.main_window import MainWindow  # noqa: E402
 
 try:
     logging.basicConfig(
@@ -20,6 +18,14 @@ except OSError as e:
         e.strerror,
         exc_info=e,
     )
+
+import sys  # noqa: E402
+
+from std_logger import StderrToLogger  # noqa: E402
+
+sys.stderr = StderrToLogger()
+
+from widgets.main_window import MainWindow  # noqa: E402
 
 app = QApplication(sys.argv)
 main_window = MainWindow()

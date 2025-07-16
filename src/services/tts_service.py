@@ -56,13 +56,13 @@ class TtsService(Generic[T], ABC):
         match service:
             case Services.AZURE:
                 cls._current_service = cls._get_service_class(service)(
-                    settings.value("azure/key") or " ",
-                    settings.value("azure/endpoint") or " ",
+                    str(settings.value("azure/key", " ")),
+                    str(settings.value("azure/endpoint", " ")),
                     str(settings.value("azure/voice", "")),
                 )
             case Services.KOKORO:
                 cls._current_service = cls._get_service_class(service)(
-                    settings.value("kokoro/voice")
+                    str(settings.value("kokoro/voice", "af_heart"))
                 )
 
     @classmethod
@@ -280,16 +280,6 @@ class TtsService(Generic[T], ABC):
         if data is None:
             return
         _logger.info("Playing audio.")
-
-        # with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-        #     _ = tmp.write(self._get_wav_bytes(data))
-        #     tmp.flush()
-        #     tmp_path = Path(tmp.name)
-        #
-        # _ = playsound(
-        #     tmp_path, True, "ffplay" if "ffplay" in AVAILABLE_BACKENDS else None
-        # )
-        # tmp_path.unlink()
 
         player: QMediaPlayer = QMediaPlayer()
         audio_output: QAudioOutput = QAudioOutput()
