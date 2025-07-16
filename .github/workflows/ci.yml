@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Install container packages
         if: matrix.container == 'rockylinux:8-minimal'
-        run: microdnf install -y --setopt=install_weak_deps=0 cmake gcc-c++
+        run: microdnf install -y --setopt=install_weak_deps=0 tar gzip cmake gcc-c++
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
