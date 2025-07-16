@@ -1,13 +1,18 @@
 import importlib
 import logging
-import tempfile
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Callable, Generic, TypeVar
 
-from playsound3 import AVAILABLE_BACKENDS, playsound
+from PySide6.QtCore import (
+    QBuffer,
+    QByteArray,
+    QEventLoop,
+    QIODevice,
+)
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from exceptions import SynthesisException
 from settings import settings
@@ -276,15 +281,56 @@ class TtsService(Generic[T], ABC):
             return
         _logger.info("Playing audio.")
 
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-            _ = tmp.write(self._get_wav_bytes(data))
-            tmp.flush()
-            tmp_path = Path(tmp.name)
+        # with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+        #     _ = tmp.write(self._get_wav_bytes(data))
+        #     tmp.flush()
+        #     tmp_path = Path(tmp.name)
+        #
+        # _ = playsound(
+        #     tmp_path, True, "ffplay" if "ffplay" in AVAILABLE_BACKENDS else None
+        # )
+        # tmp_path.unlink()
 
-        _ = playsound(
-            tmp_path, True, "ffplay" if "ffplay" in AVAILABLE_BACKENDS else None
-        )
-        tmp_path.unlink()
+        player: QMediaPlayer = QMediaPlayer()
+        audio_output: QAudioOutput = QAudioOutput()
+        player.setAudioOutput(audio_output)
+
+        buffer: QBuffer = QBuffer()
+        buffer.setData(QByteArray(self._get_wav_bytes(data)))
+
+        if not buffer.open(QIODevice.OpenModeFlag.ReadOnly):
+            _logger.error("Playback failed. Failed to open audio buffer.")
+            show_status("Playback failed. Failed to open audio buffer.")
+            return
+
+        player.setSourceDevice(buffer)
+
+        if player.mediaStatus() == QMediaPlayer.MediaStatus.NoMedia:
+            _logger.error("Playback failed. No media to play.")
+            show_status("Playback failed. No media to play.")
+            return
+
+        loop = QEventLoop()
+
+        def on_status(status):
+            if status == QMediaPlayer.MediaStatus.EndOfMedia:
+                loop.quit()
+            elif (
+                status == QMediaPlayer.MediaStatus.InvalidMedia
+                or status == QMediaPlayer.MediaStatus.StalledMedia
+            ):
+                _logger.error("Playback failed. Error: %s", player.errorString())
+                show_status(f"Playback failed. {player.errorString()}")
+                loop.quit()
+
+        player.mediaStatusChanged.connect(on_status)
+        player.play()
+
+        if player.mediaStatus() != QMediaPlayer.MediaStatus.EndOfMedia:
+            loop.exec()
+
+        player.stop()
+        buffer.close()
 
     def save_text_to_file(self, text: str, show_status: Callable[[str], None]):
         """Saves the text to a file asynchronously.
