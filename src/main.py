@@ -6,7 +6,7 @@ QApplication.setApplicationDisplayName("VocalScript")
 
 import logging  # noqa: E402
 
-from utils import from_data_dir  # noqa: E402
+from utils import from_data_dir, is_compiled  # noqa: E402
 
 try:
     logging.basicConfig(
@@ -23,7 +23,8 @@ import sys  # noqa: E402
 
 from std_logger import StderrToLogger  # noqa: E402
 
-sys.stderr = StderrToLogger()
+if is_compiled():
+    sys.stderr = StderrToLogger()
 
 from widgets.main_window import MainWindow  # noqa: E402
 
