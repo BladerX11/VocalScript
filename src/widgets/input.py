@@ -27,45 +27,45 @@ class Input(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self.input_field: QPlainTextEdit = QPlainTextEdit(self)
-        self.input_field.setPlaceholderText("Enter text to synthesise...")
-        _ = self.input_field.textChanged.connect(
+        self._input_field: QPlainTextEdit = QPlainTextEdit(self)
+        self._input_field.setPlaceholderText("Enter text to synthesise...")
+        _ = self._input_field.textChanged.connect(
             lambda: character_count.setText(
-                f"Characters: {len(self.input_field.toPlainText())}"
+                f"Characters: {len(self._input_field.toPlainText())}"
             )
         )
 
         character_count = QLabel(self, text="Characters: 0")
 
-        self.use_ssml: QCheckBox = QCheckBox("Use SSML", self)
-        self.use_ssml.setCheckState(
+        self._use_ssml: QCheckBox = QCheckBox("Use SSML", self)
+        self._use_ssml.setCheckState(
             Qt.CheckState.Checked
             if settings.value("use_ssml", False, bool)
             else Qt.CheckState.Unchecked
         )
-        _ = self.use_ssml.stateChanged.connect(
+        _ = self._use_ssml.stateChanged.connect(
             lambda state: settings.setValue(
                 "use_ssml", state == Qt.CheckState.Checked.value
             )
         )
 
-        self.play_button = QPushButton("Play", self)
-        self.play_button.setIcon(QIcon(self._get_resource("play.svg")))
-        _ = self.play_button.clicked.connect(self._on_play)
+        self._play_button = QPushButton("Play", self)
+        self._play_button.setIcon(QIcon(self._get_resource("play.svg")))
+        _ = self._play_button.clicked.connect(self._on_play)
 
-        self.save_button = QPushButton("Save", self)
-        self.save_button.setIcon(QIcon(self._get_resource("download.svg")))
-        _ = self.save_button.clicked.connect(self._on_save)
+        self._save_button = QPushButton("Save", self)
+        self._save_button.setIcon(QIcon(self._get_resource("download.svg")))
+        _ = self._save_button.clicked.connect(self._on_save)
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(character_count)
         bottom_layout.addStretch()
-        bottom_layout.addWidget(self.use_ssml)
-        bottom_layout.addWidget(self.play_button)
-        bottom_layout.addWidget(self.save_button)
+        bottom_layout.addWidget(self._use_ssml)
+        bottom_layout.addWidget(self._play_button)
+        bottom_layout.addWidget(self._save_button)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(self.input_field)
+        layout.addWidget(self._input_field)
         layout.addLayout(bottom_layout)
         self.setLayout(layout)
 
@@ -88,23 +88,23 @@ class Input(QWidget):
     @Slot()
     def _toggle_buttons(self):
         """Toggles the Play and Save buttons."""
-        current_play = self.play_button.isEnabled()
-        current_save = self.save_button.isEnabled()
-        self.play_button.setEnabled(not current_play)
-        self.save_button.setEnabled(not current_save)
+        current_play = self._play_button.isEnabled()
+        current_save = self._save_button.isEnabled()
+        self._play_button.setEnabled(not current_play)
+        self._save_button.setEnabled(not current_save)
 
     def _on_save(self):
         """Handle the submit button click by synthesizing speech or emitting error status."""
         service = TtsService.get_service()
         fn = (
             service.save_ssml_to_file
-            if (self.use_ssml.isChecked() and isinstance(service, SsmlService))
+            if (self._use_ssml.isChecked() and isinstance(service, SsmlService))
             else service.save_text_to_file
         )
         self._toggle_buttons()
         dispatch(
             self,
-            lambda: fn(self.input_field.toPlainText().strip(), self.status.emit),
+            lambda: fn(self._input_field.toPlainText().strip(), self.status.emit),
             finished_slot=self._toggle_buttons,
         )
 
@@ -113,19 +113,19 @@ class Input(QWidget):
         service = TtsService.get_service()
         fn = (
             service.play_ssml
-            if (self.use_ssml.isChecked() and isinstance(service, SsmlService))
+            if (self._use_ssml.isChecked() and isinstance(service, SsmlService))
             else service.play_text
         )
         self._toggle_buttons()
         dispatch(
             self,
-            lambda: fn(self.input_field.toPlainText().strip(), self.status.emit),
+            lambda: fn(self._input_field.toPlainText().strip(), self.status.emit),
             finished_slot=self._toggle_buttons,
         )
 
     def check_ssml(self):
         """Enable or disable SSML checkbox based on service support."""
         if isinstance(TtsService.get_service(), SsmlService):
-            self.use_ssml.setEnabled(True)
+            self._use_ssml.setEnabled(True)
         else:
-            self.use_ssml.setEnabled(False)
+            self._use_ssml.setEnabled(False)

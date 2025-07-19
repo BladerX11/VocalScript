@@ -21,12 +21,12 @@ class TaskWorker(Generic[T], QObject):
             fn (Callable): The function to run in the background thread.
         """
         super().__init__()
-        self.fn: Callable[[], T] = fn
+        self._fn: Callable[[], T] = fn
 
     @Slot()
     def run(self) -> None:
         try:
-            result: T = self.fn()
+            result: T = self._fn()
             self.success.emit(result)
         except Exception as e:
             self.error.emit(e)

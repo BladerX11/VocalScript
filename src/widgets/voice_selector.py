@@ -19,21 +19,23 @@ class VoiceSelector(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
 
-        self.combobox: QComboBox = QComboBox(self)
-        self.combobox.setEditable(True)
-        self.combobox.setInsertPolicy(self.combobox.InsertPolicy.NoInsert)
-        self.combobox.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
+        self._combobox: QComboBox = QComboBox(self)
+        self._combobox.setEditable(True)
+        self._combobox.setInsertPolicy(self._combobox.InsertPolicy.NoInsert)
+        self._combobox.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
 
-        completer = QCompleter(self.combobox.model(), self.combobox)
+        completer = QCompleter(self._combobox.model(), self._combobox)
         completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         completer.setFilterMode(Qt.MatchFlag.MatchContains)
-        self.combobox.setCompleter(completer)
-        (self.combobox.lineEdit() or self.combobox).setPlaceholderText("Select a voice")
-        _ = self.combobox.currentIndexChanged.connect(self._on_current_index_changed)
+        self._combobox.setCompleter(completer)
+        (self._combobox.lineEdit() or self._combobox).setPlaceholderText(
+            "Select a voice"
+        )
+        _ = self._combobox.currentIndexChanged.connect(self._on_current_index_changed)
 
         layout = QHBoxLayout(self)
         layout.addWidget(QLabel("Voice"))
-        layout.addWidget(self.combobox)
+        layout.addWidget(self._combobox)
         layout.addStretch()
         self.setLayout(layout)
 
@@ -44,7 +46,7 @@ class VoiceSelector(QWidget):
         Args:
             idx (int): New index selected in combobox.
         """
-        data: str = self.combobox.itemData(idx)
+        data: str = self._combobox.itemData(idx)
         service = TtsService.get_service()
         settings.setValue(service.type().value + "/voice", data)
         service.voice = data
@@ -55,19 +57,21 @@ class VoiceSelector(QWidget):
         Args:
             voices (list[tuple[str, str]]): List of tuples containing voice names and codes.
         """
-        _ = self.combobox.currentIndexChanged.disconnect(self._on_current_index_changed)
-        self.combobox.clear()
+        _ = self._combobox.currentIndexChanged.disconnect(
+            self._on_current_index_changed
+        )
+        self._combobox.clear()
         service = TtsService.get_service()
         voice_key = service.type().value + "/voice"
 
         for name, code in voices:
-            self.combobox.addItem(name, code)
+            self._combobox.addItem(name, code)
 
         if settings.contains(voice_key):
-            idx = self.combobox.findData(settings.value(voice_key))
+            idx = self._combobox.findData(settings.value(voice_key))
             if idx == -1:
                 self.status.emit("Saved voice is invalid.")
             else:
-                self.combobox.setCurrentIndex(idx)
+                self._combobox.setCurrentIndex(idx)
 
-        _ = self.combobox.currentIndexChanged.connect(self._on_current_index_changed)
+        _ = self._combobox.currentIndexChanged.connect(self._on_current_index_changed)

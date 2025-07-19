@@ -31,34 +31,34 @@ class MainWindow(QMainWindow):
         self._msg_box.setIcon(QMessageBox.Icon.Information)
         self._msg_box.setStandardButtons(QMessageBox.StandardButton.NoButton)
 
-        self.settings: Settings = Settings(self)
-        _ = self.settings.accepted.connect(self.on_settings_accept)
-        _ = self.settings.status.connect(self.statusBar().showMessage)
+        self._settings: Settings = Settings(self)
+        _ = self._settings.accepted.connect(self.on_settings_accept)
+        _ = self._settings.status.connect(self.statusBar().showMessage)
         _ = (
             self.menuBar()
             .addAction("&Settings")
-            .triggered.connect(lambda: self.settings.open())
+            .triggered.connect(lambda: self._settings.open())
         )
 
-        self.voice_selector: VoiceSelector = VoiceSelector(self.centralWidget())
-        _ = self.voice_selector.status.connect(
+        self._voice_selector: VoiceSelector = VoiceSelector(self.centralWidget())
+        _ = self._voice_selector.status.connect(
             lambda msg: self.statusBar().showMessage(msg)
         )
 
-        self.input: Input = Input(self.centralWidget())
-        _ = self.input.status.connect(lambda msg: self.statusBar().showMessage(msg))
+        self._input: Input = Input(self.centralWidget())
+        _ = self._input.status.connect(lambda msg: self.statusBar().showMessage(msg))
 
-        self.main_layout: QVBoxLayout = QVBoxLayout(self.centralWidget())
-        self.main_layout.addWidget(self.voice_selector)
-        self.main_layout.addWidget(self.input)
-        self.centralWidget().setLayout(self.main_layout)
+        self._main_layout: QVBoxLayout = QVBoxLayout(self.centralWidget())
+        self._main_layout.addWidget(self._voice_selector)
+        self._main_layout.addWidget(self._input)
+        self.centralWidget().setLayout(self._main_layout)
 
     @Slot()
     def on_settings_accept(self):
         """Block UI then switch services and get voices asynchronously."""
 
         def switch_service():
-            TtsService.switch(self.settings.selected_service)
+            TtsService.switch(self._settings.selected_service)
             return TtsService.get_service().voices
 
         dispatch(
@@ -76,8 +76,8 @@ class MainWindow(QMainWindow):
         Args:
             voices (list[tuple[str, str]]): List of available voices.
         """
-        self.input.check_ssml()
-        self.voice_selector.load_voices(voices)
+        self._input.check_ssml()
+        self._voice_selector.load_voices(voices)
         self._msg_box.accept()
 
     @Slot(Exception)

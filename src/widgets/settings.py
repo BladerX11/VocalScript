@@ -26,20 +26,20 @@ class Settings(QDialog):
         self.setWindowTitle("Settings")
 
         self.selected_service: Services
-        self.inputs: dict[str, QLineEdit] = {}
-        self.field_keys: dict[str, str] = {}
+        self._inputs: dict[str, QLineEdit] = {}
+        self._field_keys: dict[str, str] = {}
 
-        self.service_selector: QComboBox = QComboBox(self)
+        self._service_selector: QComboBox = QComboBox(self)
 
         for service in Services:
-            self.service_selector.addItem(service.name.capitalize(), service)
+            self._service_selector.addItem(service.name.capitalize(), service)
 
-        _ = self.service_selector.currentIndexChanged.connect(self.on_service_changed)
+        _ = self._service_selector.currentIndexChanged.connect(self.on_service_changed)
 
         form: QWidget = QWidget(self)
-        self.form_layout: QFormLayout = QFormLayout()
-        self.form_layout.addRow("&Service", self.service_selector)
-        form.setLayout(self.form_layout)
+        self._form_layout: QFormLayout = QFormLayout()
+        self._form_layout.addRow("&Service", self._service_selector)
+        form.setLayout(self._form_layout)
         self.reset_form()
 
         buttons = QDialogButtonBox(
@@ -59,25 +59,25 @@ class Settings(QDialog):
 
     def build_form(self):
         """Builds the form fields for the selected service."""
-        self.inputs.clear()
-        self.field_keys.clear()
+        self._inputs.clear()
+        self._field_keys.clear()
         fields = TtsService.get_setting_fields_for(self.selected_service)
 
-        while self.form_layout.rowCount() > 1:
-            self.form_layout.removeRow(1)
+        while self._form_layout.rowCount() > 1:
+            self._form_layout.removeRow(1)
 
         for field in fields:
             editor = QLineEdit(self)
             key = f"{self.selected_service.value}/{field}"
             editor.setText(str(settings.value(key, "")))
-            self.inputs[field] = editor
-            self.field_keys[field] = key
-            self.form_layout.addRow(f"&{field.capitalize()}", editor)
+            self._inputs[field] = editor
+            self._field_keys[field] = key
+            self._form_layout.addRow(f"&{field.capitalize()}", editor)
 
     @Slot(int)
     def on_service_changed(self, index: int):
         """Updates selected service and rebuilds fields."""
-        self.selected_service = self.service_selector.itemData(index)
+        self.selected_service = self._service_selector.itemData(index)
         self.build_form()
 
     def reset_form(self):
@@ -93,8 +93,8 @@ class Settings(QDialog):
             service = TtsService.DEFAULT_SERVICE
 
         self.selected_service = service
-        self.service_selector.setCurrentIndex(
-            self.service_selector.findData(self.selected_service)
+        self._service_selector.setCurrentIndex(
+            self._service_selector.findData(self.selected_service)
         )
         self.build_form()
 
@@ -106,9 +106,9 @@ class Settings(QDialog):
 
     @override
     def accept(self):
-        for field, editor in self.inputs.items():
+        for field, editor in self._inputs.items():
             value = editor.text()
-            settings.setValue(self.field_keys[field], value)
+            settings.setValue(self._field_keys[field], value)
 
         settings.setValue("service", self.selected_service.value)
         super().accept()
