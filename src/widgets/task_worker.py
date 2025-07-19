@@ -9,8 +9,9 @@ _workers: set[QObject] = set()
 class TaskWorker(Generic[T], QObject):
     """Worker that runs a function in a separate thread and emits result or error."""
 
-    finished: Signal = Signal(object)
+    success: Signal = Signal(object)
     error: Signal = Signal(Exception)
+    finished: Signal = Signal()
 
     def __init__(self, fn: Callable[[], T]):
         """Initialize the worker with a function and its arguments.
@@ -26,24 +27,28 @@ class TaskWorker(Generic[T], QObject):
     def run(self) -> None:
         try:
             result: T = self.fn()
-            self.finished.emit(result)
+            self.success.emit(result)
         except Exception as e:
             self.error.emit(e)
+        finally:
+            self.finished.emit()
 
 
 def dispatch(
     parent: QObject,
     fn: Callable[[], T],
-    finished_slot: Callable[[T], None] | None = None,
+    success_slot: Callable[[T], None] | None = None,
     error_slot: Callable[[Exception], None] | None = None,
+    finished_slot: Callable[[], None] | None = None,
 ):
     """Helper to run a function in a background QThread.
 
     Parameters:
         parent (QObject): Parent for the QThread to ensure proper QObject hierarchy.
         fn (callable): The function to execute in the background thread.
-        finished_slot (callable, optional): Slot to connect to the worker's finished signal.
+        success_slot (callable, optional): Slot to connect to the worker's success signal.
         error_slot (callable, optional): Slot to connect to the worker's error signal.
+        finished_slot (callable, optional): Slot to connect to the worker's finished signal.
     """
     thread = QThread(parent)
     worker = TaskWorker(fn)
@@ -51,23 +56,23 @@ def dispatch(
     _ = worker.moveToThread(thread)
 
     if error_slot:
-        worker.error.connect(error_slot)
+        _ = worker.error.connect(error_slot)
     else:
 
         def raise_error(e: Exception):
             raise e
 
-        worker.error.connect(raise_error)
+        _ = worker.error.connect(raise_error)
+
+    if success_slot:
+        _ = worker.success.connect(success_slot)
 
     if finished_slot:
         _ = worker.finished.connect(finished_slot)
 
     _ = thread.started.connect(worker.run)
     _ = worker.finished.connect(thread.quit)
-    _ = worker.error.connect(thread.quit)
-    _ = worker.finished.connect(lambda _: _workers.remove(worker))
-    _ = worker.error.connect(lambda _: _workers.remove(worker))
+    _ = worker.finished.connect(lambda: _workers.remove(worker))
     _ = worker.finished.connect(worker.deleteLater)
-    _ = worker.error.connect(worker.deleteLater)
     _ = thread.finished.connect(thread.deleteLater)
     thread.start()

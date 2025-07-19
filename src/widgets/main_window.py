@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         dispatch(
             self,
             switch_service,
-            finished_slot=self._on_services_switched,
+            success_slot=self._on_services_switched,
             error_slot=self._on_services_switch_error,
         )
         _ = self._msg_box.exec()
@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
         self._msg_box.accept()
 
     @Slot(Exception)
-    def _on_services_switch_error(self, error: Exception):
+    def _on_services_switch_error(self, _: Exception):
         self.statusBar().showMessage(
             "Setting up service failed. Please select service and try again"
         )

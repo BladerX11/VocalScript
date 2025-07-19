@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -49,20 +49,20 @@ class Input(QWidget):
             )
         )
 
-        play_button = QPushButton("Play", self)
-        play_button.setIcon(QIcon(self._get_resource("play.svg")))
-        _ = play_button.clicked.connect(self._on_play)
+        self.play_button = QPushButton("Play", self)
+        self.play_button.setIcon(QIcon(self._get_resource("play.svg")))
+        _ = self.play_button.clicked.connect(self._on_play)
 
-        save_button = QPushButton("Save", self)
-        save_button.setIcon(QIcon(self._get_resource("download.svg")))
-        _ = save_button.clicked.connect(self._on_save)
+        self.save_button = QPushButton("Save", self)
+        self.save_button.setIcon(QIcon(self._get_resource("download.svg")))
+        _ = self.save_button.clicked.connect(self._on_save)
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(character_count)
         bottom_layout.addStretch()
         bottom_layout.addWidget(self.use_ssml)
-        bottom_layout.addWidget(play_button)
-        bottom_layout.addWidget(save_button)
+        bottom_layout.addWidget(self.play_button)
+        bottom_layout.addWidget(self.save_button)
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.input_field)
@@ -85,6 +85,14 @@ class Input(QWidget):
 
         return str(basedir / "resources" / name)
 
+    @Slot()
+    def _toggle_buttons(self):
+        """Toggles the Play and Save buttons."""
+        current_play = self.play_button.isEnabled()
+        current_save = self.save_button.isEnabled()
+        self.play_button.setEnabled(not current_play)
+        self.save_button.setEnabled(not current_save)
+
     def _on_save(self):
         """Handle the submit button click by synthesizing speech or emitting error status."""
         service = TtsService.get_service()
@@ -93,9 +101,11 @@ class Input(QWidget):
             if (self.use_ssml.isChecked() and isinstance(service, SsmlService))
             else service.save_text_to_file
         )
+        self._toggle_buttons()
         dispatch(
             self,
             lambda: fn(self.input_field.toPlainText().strip(), self.status.emit),
+            finished_slot=self._toggle_buttons,
         )
 
     def _on_play(self):
@@ -106,9 +116,11 @@ class Input(QWidget):
             if (self.use_ssml.isChecked() and isinstance(service, SsmlService))
             else service.play_text
         )
+        self._toggle_buttons()
         dispatch(
             self,
             lambda: fn(self.input_field.toPlainText().strip(), self.status.emit),
+            finished_slot=self._toggle_buttons,
         )
 
     def check_ssml(self):
