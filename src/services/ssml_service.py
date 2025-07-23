@@ -15,7 +15,7 @@ class SsmlService(TtsService[T], ABC):
 
         Args:
             text (str): The SSML to be converted to speech.
-        
+
         Raises:
             SynthesisException: If there is an error during synthesis.
         """
@@ -28,7 +28,7 @@ class SsmlService(TtsService[T], ABC):
             ssml (str): The SSML to be converted to speech.
             show_status (Callable[[str], None]): A callback function to show status updates.
         """
-        self._synth_and_save("SSML", ssml, self._synthesise_ssml_implementation, show_status)
+        self._synth_and_save(ssml, self._synthesise_ssml_implementation, show_status)
 
     def play_ssml(self, ssml: str, show_status: Callable[[str], None]):
         """
@@ -39,4 +39,4 @@ class SsmlService(TtsService[T], ABC):
         Raises:
             MissingInformationError: If the service information is not set.
         """
-        self._synth_and_play("SSML", ssml, self._synthesise_ssml_implementation, show_status)
+        self._synth_and_play(ssml, self._synthesise_ssml_implementation, show_status)
