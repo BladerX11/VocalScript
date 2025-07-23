@@ -37,11 +37,6 @@ class Kokoro(TtsService[Tensor]):
     def setting_fields(cls) -> list[str]:
         return []
 
-    @override
-    @classmethod
-    def _save_implementation(cls, file: Path, data: Tensor):
-        soundfile.write(file, data, cls.SAMPLE_RATE)
-
     @property
     @override
     def voices(self):
@@ -89,6 +84,10 @@ class Kokoro(TtsService[Tensor]):
                 chunks.append(audio)
 
         return torch.cat(chunks)
+
+    @override
+    def _save_implementation(self, file: Path, data: Tensor):
+        soundfile.write(file, data, self.SAMPLE_RATE)
 
     @override
     def _get_wav_bytes(self, data: Tensor):

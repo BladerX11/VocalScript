@@ -57,13 +57,6 @@ class Azure(SsmlService[SpeechSynthesisResult]):
         return ["key", "endpoint"]
 
     @classmethod
-    @override
-    def _save_implementation(cls, file: Path, data: SpeechSynthesisResult):
-        _logger.info("Saving file. File: %s", file.name)
-        with file.open("xb") as f:
-            _ = f.write(data.audio_data)
-
-    @classmethod
     def _has_error(
         cls,
         details: SpeechSynthesisCancellationDetails | None,
@@ -178,6 +171,12 @@ class Azure(SsmlService[SpeechSynthesisResult]):
         result = self.speech_synthesizer.speak_text(text)
         self._has_error(result.cancellation_details)
         return result
+
+    @override
+    def _save_implementation(self, file: Path, data: SpeechSynthesisResult):
+        _logger.info("Saving file. File: %s", file.name)
+        with file.open("xb") as f:
+            _ = f.write(data.audio_data)
 
     @override
     def _get_wav_bytes(self, data: SpeechSynthesisResult):
