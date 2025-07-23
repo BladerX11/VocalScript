@@ -52,18 +52,26 @@ class TtsService(Generic[T], ABC):
 
     @classmethod
     def switch(cls, service: Services):
-        """Switches to a new TtsService instance for the given type."""
-        match service:
-            case Services.AZURE:
-                cls._current_service = cls._get_service_class(service)(
-                    str(settings.value("azure/key", " ")),
-                    str(settings.value("azure/endpoint", " ")),
-                    str(settings.value("azure/voice", "")),
-                )
-            case Services.KOKORO:
-                cls._current_service = cls._get_service_class(service)(
-                    str(settings.value("kokoro/voice", "af_heart"))
-                )
+        """Switches to a new TtsService instance for the given type.
+
+        Raises:
+            Exception: If the service setup fails.
+        """
+        try:
+            match service:
+                case Services.AZURE:
+                    cls._current_service = cls._get_service_class(service)(
+                        str(settings.value("azure/key", " ")),
+                        str(settings.value("azure/endpoint", " ")),
+                        str(settings.value("azure/voice", "")),
+                    )
+                case Services.KOKORO:
+                    cls._current_service = cls._get_service_class(service)(
+                        str(settings.value("kokoro/voice", "af_heart"))
+                    )
+        except Exception as e:
+            _logger.error("Setting up service failed.", exc_info=e)
+            raise e
 
     @classmethod
     def get_service(cls) -> "TtsService[object]":
@@ -106,23 +114,6 @@ class TtsService(Generic[T], ABC):
         """Returns the setting fields for the TTS service."""
         pass
 
-    @classmethod
-    @abstractmethod
-    def _save_implementation(cls, file: Path, data: T):
-        """Saves audio data to a file.
-
-        Args:
-            file (Path): The file path where the audio will be saved.
-            data (T): The audio data to be saved.
-
-        Raises:
-            FileExistsError: If a file already exists at the target path.
-            IsADirectoryError: If the target path is a directory.
-            PermissionError: If lacking permissions to create or write the file.
-            OSError: For other filesystem errors.
-        """
-        pass
-
     @property
     @abstractmethod
     def voices(self) -> list[tuple[str, str]]:
@@ -157,6 +148,22 @@ class TtsService(Generic[T], ABC):
 
         Raises:
             SynthesisException: If there is an error during synthesis.
+        """
+        pass
+
+    @abstractmethod
+    def _save_implementation(self, file: Path, data: T):
+        """Saves audio data to a file.
+
+        Args:
+            file (Path): The file path where the audio will be saved.
+            data (T): The audio data to be saved.
+
+        Raises:
+            FileExistsError: If a file already exists at the target path.
+            IsADirectoryError: If the target path is a directory.
+            PermissionError: If lacking permissions to create or write the file.
+            OSError: For other filesystem errors.
         """
         pass
 
