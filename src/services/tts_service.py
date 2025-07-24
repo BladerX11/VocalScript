@@ -14,7 +14,7 @@ from PySide6.QtCore import (
 )
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
-from exceptions import SynthesisException
+from exceptions import ServiceCreationxception, SynthesisException
 from settings import settings
 from utils import from_data_dir
 
@@ -25,6 +25,7 @@ T = TypeVar("T")
 class Services(Enum):
     AZURE = "azure"
     KOKORO = "kokoro"
+    CHATTERBOX = "chatterbox"
 
 
 class TtsService(Generic[T], ABC):
@@ -49,6 +50,10 @@ class TtsService(Generic[T], ABC):
                 return getattr(importlib.import_module("services.azure"), "Azure")
             case Services.KOKORO:
                 return getattr(importlib.import_module("services.kokoro"), "Kokoro")
+            case Services.CHATTERBOX:
+                return getattr(
+                    importlib.import_module("services.chatterbox"), "Chatterbox"
+                )
 
     @classmethod
     def switch(cls, service: Services):
@@ -57,21 +62,19 @@ class TtsService(Generic[T], ABC):
         Raises:
             Exception: If the service setup fails.
         """
-        try:
-            match service:
-                case Services.AZURE:
-                    cls._current_service = cls._get_service_class(service)(
-                        str(settings.value("azure/key", " ")),
-                        str(settings.value("azure/endpoint", " ")),
-                        str(settings.value("azure/voice", "")),
-                    )
-                case Services.KOKORO:
-                    cls._current_service = cls._get_service_class(service)(
-                        str(settings.value("kokoro/voice", "af_heart"))
-                    )
-        except Exception as e:
-            _logger.error("Setting up service failed.", exc_info=e)
-            raise e
+        match service:
+            case Services.AZURE:
+                cls._current_service = cls._get_service_class(service)(
+                    str(settings.value("azure/key", " ")),
+                    str(settings.value("azure/endpoint", " ")),
+                    str(settings.value("azure/voice", "")),
+                )
+            case Services.KOKORO:
+                cls._current_service = cls._get_service_class(service)(
+                    str(settings.value("kokoro/voice", "af_heart"))
+                )
+            case Services.CHATTERBOX:
+                cls._current_service = cls._get_service_class(service)()
 
     @classmethod
     def get_service(cls) -> "TtsService[object]":

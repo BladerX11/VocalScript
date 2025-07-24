@@ -15,7 +15,7 @@ from azure.cognitiveservices.speech import (
 )
 from azure.cognitiveservices.speech.diagnostics.logging import EventLogger
 
-from exceptions import SynthesisException
+from exceptions import ServiceCreationxception, SynthesisException
 from services.ssml_service import SsmlService
 from services.tts_service import Services
 
@@ -32,11 +32,16 @@ class Azure(SsmlService[SpeechSynthesisResult]):
             voice (str): Default synthesis voice short name.
         """
         super().__init__()
-        speech_config = SpeechConfig(subscription=subscription, endpoint=endpoint)
-        speech_config.speech_synthesis_voice_name = voice
-        self.speech_synthesizer: SpeechSynthesizer = SpeechSynthesizer(
-            speech_config=speech_config, audio_config=None
-        )
+
+        try:
+            speech_config = SpeechConfig(subscription=subscription, endpoint=endpoint)
+            speech_config.speech_synthesis_voice_name = voice
+            self.speech_synthesizer: SpeechSynthesizer = SpeechSynthesizer(
+                speech_config=speech_config, audio_config=None
+            )
+        except Exception as e:
+            _logger.error("Creating azure service failed", exc_info=True)
+            raise ServiceCreationxception from e
 
         def _log(msg: str):
             if "INFO" in msg:

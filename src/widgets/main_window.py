@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from exceptions import ServiceCreationxception
 from services.tts_service import TtsService
 from widgets.input import Input
 from widgets.settings import Settings
@@ -81,8 +82,11 @@ class MainWindow(QMainWindow):
         self._msg_box.accept()
 
     @Slot(Exception)
-    def _on_services_switch_error(self, _: Exception):
-        self.statusBar().showMessage(
-            "Setting up service failed. Please select service and try again"
-        )
+    def _on_services_switch_error(self, e: Exception):
+        if isinstance(e, ServiceCreationxception):
+            self.statusBar().showMessage(
+                "Setting up service failed. Please select service and try again"
+            )
+        else:
+            raise e
         self._msg_box.reject()
