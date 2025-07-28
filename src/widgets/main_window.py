@@ -83,10 +83,10 @@ class MainWindow(QMainWindow):
 
     @Slot(Exception)
     def _on_services_switch_error(self, e: Exception):
-        if isinstance(e, ServiceCreationxception):
+        self._msg_box.reject()
+        if isinstance(e, ServiceCreationException):
             self.statusBar().showMessage(
-                "Setting up service failed. Please select service and try again"
+                f"Setting up service failed. {e}. Please select service and try again"
             )
         else:
             raise e
-        self._msg_box.reject()

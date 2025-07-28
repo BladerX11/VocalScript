@@ -95,10 +95,10 @@ class Azure(SsmlService[SpeechSynthesisResult]):
 
         if details.reason == CancellationReason.Error:
             _logger.error("Synthesis failed. Error details: %s", details.error_details)
-            msg = "Synthesis failed. Check log."
+            msg = "Check log"
         else:
             _logger.info("Synthesis canceled")
-            msg = "Synthesis canceled."
+            msg = "Canceled"
 
         raise SynthesisException(msg)
 
