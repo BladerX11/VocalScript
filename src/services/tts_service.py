@@ -85,6 +85,12 @@ class TtsService(Generic[T], ABC):
         Class = cls.get_service_class(service)
         args = [str(settings.value(Class.voice_key(), Class._default_voice()))]
 
+        if issubclass(
+            Class,
+            getattr(importlib.import_module("services.clone_service"), "CloneService"),
+        ):
+            args.append(str(settings.value(getattr(Class, "sample_voice_key")(), "")))
+
         args.extend(
             str(settings.value(setting.key, setting.default_value))
             for setting in Class.setting_fields()
