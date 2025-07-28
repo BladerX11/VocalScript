@@ -17,24 +17,32 @@ from azure.cognitiveservices.speech.diagnostics.logging import EventLogger
 
 from exceptions import ServiceCreationException, SynthesisException
 from services.ssml_service import SsmlService
-from services.tts_service import Services
+from services.tts_service import Services, Setting
 
 _logger = logging.getLogger(__name__)
 
 
 class Azure(SsmlService[SpeechSynthesisResult]):
-    def __init__(self, subscription: str, endpoint: str, voice: str):
+    def __init__(
+        self,
+        voice: str,
+        key: str,
+        endpoint: str,
+    ):
         """Initialize Azure TTS service.
 
         Args:
-            subscription (str): Azure subscription key.
+            voice (str): Synthesis voice.
+            key (str): Azure subscription key.
             endpoint (str): Azure service endpoint URL.
-            voice (str): Default synthesis voice short name.
+
+        Raises:
+            ServiceCreationException: If the service creation fails.
         """
         super().__init__()
 
         try:
-            speech_config = SpeechConfig(subscription=subscription, endpoint=endpoint)
+            speech_config = SpeechConfig(subscription=key, endpoint=endpoint)
             speech_config.speech_synthesis_voice_name = voice
             self.speech_synthesizer: SpeechSynthesizer = SpeechSynthesizer(
                 speech_config=speech_config, audio_config=None
@@ -59,7 +67,15 @@ class Azure(SsmlService[SpeechSynthesisResult]):
     @classmethod
     @override
     def setting_fields(cls):
-        return ["key", "endpoint"]
+        return [
+            Setting("key", f"{cls.type().value}/key", " "),
+            Setting("endpoint", f"{cls.type().value}/endpoint", " "),
+        ]
+
+    @classmethod
+    @override
+    def _default_voice(cls):
+        return ""
 
     @classmethod
     def _has_error(

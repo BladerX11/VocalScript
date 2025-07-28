@@ -1,6 +1,7 @@
 import importlib
 import logging
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -28,9 +29,17 @@ class Services(Enum):
     CHATTERBOX = "chatterbox"
 
 
+@dataclass
+class Setting:
+    name: str
+    key: str
+    default_value: str
+
+
 class TtsService(Generic[T], ABC):
     _current_service: "TtsService[object] | None" = None
     DEFAULT_SERVICE: Services = Services.AZURE
+    VOICE_NAME: str = "voice"
 
     def __init__(self, *args: str):
         """Initialize the TTS service by setting up the media player and audio output.
@@ -43,7 +52,7 @@ class TtsService(Generic[T], ABC):
         """
 
     @classmethod
-    def _get_service_class(cls, service: Services) -> type["TtsService[object]"]:
+    def get_service_class(cls, service: Services) -> type["TtsService[object]"]:
         """Return the TtsService subclass for the given service type.
 
         Args:
@@ -72,19 +81,15 @@ class TtsService(Generic[T], ABC):
         Raises:
             ServiceCreationException: If the service setup fails.
         """
-        match service:
-            case Services.AZURE:
-                cls._current_service = cls._get_service_class(service)(
-                    str(settings.value("azure/key", " ")),
-                    str(settings.value("azure/endpoint", " ")),
-                    str(settings.value("azure/voice", "")),
-                )
-            case Services.KOKORO:
-                cls._current_service = cls._get_service_class(service)(
-                    str(settings.value("kokoro/voice", "af_heart"))
-                )
-            case Services.CHATTERBOX:
-                cls._current_service = cls._get_service_class(service)()
+        _logger.info("Switching TTS service to %s", service.name)
+        Class = cls.get_service_class(service)
+        args = [str(settings.value(Class.voice_key(), Class._default_voice()))]
+
+        args.extend(
+            str(settings.value(setting.key, setting.default_value))
+            for setting in Class.setting_fields()
+        )
+        cls._current_service = Class(*args)
 
     @classmethod
     def get_service(cls) -> "TtsService[object]":
@@ -104,16 +109,9 @@ class TtsService(Generic[T], ABC):
         return cls._current_service
 
     @classmethod
-    def get_setting_fields_for(cls, service: Services):
-        """Retrieve the list of configurable setting keys for a specific TTS service.
-
-        Args:
-            service (Services): The enum value representing the TTS service.
-
-        Returns:
-            list[str]: The list of setting field names required by the service.
-        """
-        return cls._get_service_class(service).setting_fields()
+    def voice_key(cls):
+        """Returns the key for the voice setting in the TTS service."""
+        return f"{cls.type().value}/voice"
 
     @classmethod
     @abstractmethod
@@ -123,8 +121,14 @@ class TtsService(Generic[T], ABC):
 
     @classmethod
     @abstractmethod
-    def setting_fields(cls) -> list[str]:
+    def setting_fields(cls) -> list[Setting]:
         """Returns the setting fields for the TTS service."""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def _default_voice(cls) -> str:
+        """Returns the default voice for the TTS service."""
         pass
 
     @property
