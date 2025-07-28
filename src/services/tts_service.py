@@ -15,7 +15,7 @@ from PySide6.QtCore import (
 )
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
-from exceptions import ServiceCreationxception, SynthesisException
+from exceptions import SynthesisException
 from settings import settings
 from utils import from_data_dir
 
@@ -222,15 +222,17 @@ class TtsService(Generic[T], ABC):
             Optional[T]: The synthesized audio data, or None if synthesis failed or configuration is missing.
         """
         _logger.info("Synthesising. Input: %s", input_str)
+
         if not self._has_information():
             show_status("Service information required to generate audio.")
             return None
+
         show_status("Synthesising.")
+
         try:
             return synth(input_str)
         except SynthesisException as e:
-            _logger.error("Synthesis failed: %s", str(e), exc_info=e)
-            show_status(str(e))
+            show_status(f"Synthesis failed. {e}.")
             return None
 
     def _synth_and_save(

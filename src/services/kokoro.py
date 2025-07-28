@@ -82,7 +82,12 @@ class Kokoro(TtsService[Tensor]):
 
     @override
     def _synthesise_text_implementation(self, text: str) -> Tensor:
-        generator = self.pipeline(text, self.voice)
+        try:
+            generator = self.pipeline(text, self.voice)
+        except Exception as e:
+            _logger.error("Synthesis failed", exc_info=True)
+            raise SynthesisException("Check log") from e
+
         chunks: list[Tensor] = []
 
         for _, _, audio in list(generator):
