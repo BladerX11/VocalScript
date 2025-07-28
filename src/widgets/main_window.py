@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from exceptions import ServiceCreationxception
+from exceptions import ServiceCreationException
 from services.tts_service import TtsService
 from widgets.input import Input
 from widgets.settings import Settings
