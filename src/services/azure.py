@@ -15,7 +15,7 @@ from azure.cognitiveservices.speech import (
 )
 from azure.cognitiveservices.speech.diagnostics.logging import EventLogger
 
-from exceptions import ServiceCreationxception, SynthesisException
+from exceptions import ServiceCreationException, SynthesisException
 from services.ssml_service import SsmlService
 from services.tts_service import Services
 
@@ -41,7 +41,7 @@ class Azure(SsmlService[SpeechSynthesisResult]):
             )
         except Exception as e:
             _logger.error("Creating azure service failed", exc_info=True)
-            raise ServiceCreationxception from e
+            raise ServiceCreationException("Check log") from e
 
         def _log(msg: str):
             if "INFO" in msg:

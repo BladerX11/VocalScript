@@ -33,7 +33,14 @@ class TtsService(Generic[T], ABC):
     DEFAULT_SERVICE: Services = Services.AZURE
 
     def __init__(self, *args: str):
-        """Initialize the TTS service by setting up the media player and audio output."""
+        """Initialize the TTS service by setting up the media player and audio output.
+
+        Args:
+            *args (str): Additional arguments specific to the TTS service implementation.
+
+        Raises:
+            ServiceCreationException: If the service setup fails
+        """
 
     @classmethod
     def _get_service_class(cls, service: Services) -> type["TtsService[object]"]:
@@ -59,8 +66,11 @@ class TtsService(Generic[T], ABC):
     def switch(cls, service: Services):
         """Switches to a new TtsService instance for the given type.
 
+        Args:
+            service (Services): The enum value representing the desired service.
+
         Raises:
-            Exception: If the service setup fails.
+            ServiceCreationException: If the service setup fails.
         """
         match service:
             case Services.AZURE:
@@ -129,7 +139,7 @@ class TtsService(Generic[T], ABC):
         """Gets the currently selected voice for the TTS service.
 
         Returns:
-            str: The short name of the currently selected voice.
+            str: The name of the currently selected voice.
         """
         pass
 

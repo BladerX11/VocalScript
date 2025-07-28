@@ -2,5 +2,5 @@ class SynthesisException(Exception):
     """Error during synthesis."""
 
 
-class ServiceCreationxception(Exception):
+class ServiceCreationException(Exception):
     """Error during service creation."""
