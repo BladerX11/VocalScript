@@ -10,7 +10,8 @@ from kokoro import KPipeline
 from kokoro.pipeline import LANG_CODES
 from torch import FloatTensor, Tensor
 
-from services.tts_service import Services, TtsService
+from exceptions import SynthesisException
+from services.tts_service import Services, Setting, TtsService
 
 _logger = logging.getLogger(__name__)
 
@@ -32,10 +33,15 @@ class Kokoro(TtsService[Tensor]):
     def type(cls):
         return Services.KOKORO
 
-    @override
     @classmethod
-    def setting_fields(cls) -> list[str]:
+    @override
+    def setting_fields(cls) -> list[Setting]:
         return []
+
+    @classmethod
+    @override
+    def _default_voice(cls):
+        return "af_heart"
 
     @property
     @override
