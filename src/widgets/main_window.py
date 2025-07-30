@@ -1,4 +1,5 @@
 from PySide6.QtCore import Slot
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
@@ -34,11 +35,12 @@ class MainWindow(QMainWindow):
         self._settings: Settings = Settings(self)
         _ = self._settings.accepted.connect(self.on_settings_accept)
         _ = self._settings.status.connect(self.statusBar().showMessage)
-        _ = (
-            self.menuBar()
-            .addAction("&Settings")
-            .triggered.connect(lambda: self._settings.open())
+
+        settings_action: QAction = QAction(
+            "&Settings", self.menuBar(), menuRole=QAction.MenuRole.PreferencesRole
         )
+        _ = settings_action.triggered.connect(lambda: self._settings.open())
+        _ = self.menuBar().addAction(settings_action)
 
         self._voice_selector: VoiceSelector = VoiceSelector(self.centralWidget())
         _ = self._voice_selector.status.connect(
