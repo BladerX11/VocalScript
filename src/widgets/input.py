@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from services.clone_service import CloneService
 from services.ssml_service import SsmlService
 from services.tts_service import TtsService
 from settings import settings
@@ -96,11 +97,17 @@ class Input(QWidget):
     def _on_save(self):
         """Handle the submit button click by synthesizing speech or emitting error status."""
         service = TtsService.get_service()
-        fn = (
-            service.save_ssml_to_file
-            if (self._use_ssml.isChecked() and isinstance(service, SsmlService))
-            else service.save_text_to_file
-        )
+
+        if isinstance(service, SsmlService) and self._use_ssml.isChecked():
+            fn = service.save_ssml_to_file
+        elif (
+            isinstance(service, CloneService)
+            and service.voice == CloneService.CLONE_VOICE
+        ):
+            fn = service.save_clone_to_file
+        else:
+            fn = service.save_text_to_file
+
         self._toggle_buttons()
         dispatch(
             self,
@@ -111,11 +118,17 @@ class Input(QWidget):
     def _on_play(self):
         """Handle the play button click by synthesizing speech or emitting error status."""
         service = TtsService.get_service()
-        fn = (
-            service.play_ssml
-            if (self._use_ssml.isChecked() and isinstance(service, SsmlService))
-            else service.play_text
-        )
+
+        if isinstance(service, SsmlService) and self._use_ssml.isChecked():
+            fn = service.play_ssml
+        elif (
+            isinstance(service, CloneService)
+            and service.voice == CloneService.CLONE_VOICE
+        ):
+            fn = service.play_clone
+        else:
+            fn = service.play_text
+
         self._toggle_buttons()
         dispatch(
             self,
