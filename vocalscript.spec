@@ -5,10 +5,11 @@ from PyInstaller.utils.hooks import collect_all
 
 datas = [('resources', 'resources')]
 binaries = []
-hiddenimports = ['services.azure', 'services.kokoro']
+hiddenimports = ['services.azure', 'services.kokoro', 'services.chatterbox', 'sklearn._cyutility']
 datas += collect_data_files('language_tags')
 datas += collect_data_files('espeakng_loader')
 datas += collect_data_files('misaki')
+datas += collect_data_files('perth')
 binaries += collect_dynamic_libs('azure.cognitiveservices.speech')
 tmp_ret = collect_all('en_core_web_sm')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
@@ -29,8 +30,8 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
-pyz = PYZ(a.pure)
 a.binaries = [b for b in a.binaries if not b[0].endswith("libstdc++.so.6")]
+pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
