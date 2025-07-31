@@ -35,12 +35,12 @@ class MainWindow(QMainWindow):
         self._settings: Settings = Settings(self)
         _ = self._settings.accepted.connect(self.on_settings_accept)
         _ = self._settings.status.connect(self.statusBar().showMessage)
-
-        settings_action: QAction = QAction(
-            "&Settings", self.menuBar(), menuRole=QAction.MenuRole.PreferencesRole
+        _ = (
+            self.menuBar()
+            .addMenu("&Application")
+            .addAction("&Settings")
+            .triggered.connect(self._settings.open)
         )
-        _ = settings_action.triggered.connect(lambda: self._settings.open())
-        _ = self.menuBar().addAction(settings_action)
 
         self._voice_selector: VoiceSelector = VoiceSelector(self.centralWidget())
         _ = self._voice_selector.status.connect(

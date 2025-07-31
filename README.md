@@ -70,10 +70,14 @@ To get a local copy up and running follow these simple example steps.
 
     ![OS indication on release page](assets/release.webp)
 
-2. Launch the application and click on settings in the menubar, then select your prefered service and enter your information and click save.
+2. Launch the application and click on Application -> Settings in the menubar. For MacOS, it will be the application name -> Preferences in your global menu. Select your prefered service and enter your information and click save.
 
-    ![Settings button in app](assets/enter-settings.webp)
+    ![Settings button in app](assets/open-settings.webp)
     ![Settings dialog](assets/settings.webp)
+
+3. Select you voice that matches the language you are using.
+
+    ![Voice selection](assets/voice.webp)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
