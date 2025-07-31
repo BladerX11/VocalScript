@@ -89,7 +89,11 @@ To get a local copy up and running follow these simple example steps.
 
 1. Download [espeak-ng](https://github.com/espeak-ng/espeak-ng/blob/master/docs/guide.md). Needed for some english words and non-english languages, or they will be skipped.
 
-As this is a local model, no information is required. However, the model and voices will be downloaded and cached locally when selecting it for the first time. This will take some time.
+#### Chatterbox
+
+1. No further setup required.
+
+Note: For local models, the model and voices will be downloaded and cached locally when selecting it for the first time. This will take some time.
 
 ### Saving audio
 
@@ -120,6 +124,12 @@ As this is a local model, no information is required. However, the model and voi
     ![SSML checkbox in app](assets/ssml.webp)
   
 3. Click the buttons to play or save. The text content will be parsed as SSML.
+
+### Cloning voice (for selected services)
+
+1. Select the clone option as the voice. A file picker will open to select the sample voice wav file to clone. You can try this [sample](assets/p236_023.wav) from the [Voice Cloning Toolkit](https://datashare.ed.ac.uk/handle/10283/3443) dataset.
+
+    ![Clone voice option](assets/clone.webp)
 
 ### Editing service information
 
