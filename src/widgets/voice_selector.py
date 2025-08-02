@@ -40,15 +40,15 @@ class VoiceSelector(QWidget):
         self.setLayout(layout)
 
     @Slot(int)
-    def _on_current_index_changed(self, idx: int):
+    def _on_current_index_changed(self, _: int):
         """Handle combobox index change: update stored voice setting and synthesizer voice.
 
         Args:
             idx (int): New index selected in combobox.
         """
-        data: str = self._combobox.itemData(idx)
+        data: str = self._combobox.currentData()
         service = TtsService.get_service()
-        settings.setValue(service.type().value + "/voice", data)
+        settings.setValue(service.voice_key(), data)
         service.voice = data
 
     def load_voices(self, voices: list[tuple[str, str]]):
@@ -62,16 +62,17 @@ class VoiceSelector(QWidget):
         )
         self._combobox.clear()
         service = TtsService.get_service()
-        voice_key = service.type().value + "/voice"
 
         for name, code in voices:
             self._combobox.addItem(name, code)
 
-        if settings.contains(voice_key):
-            idx = self._combobox.findData(settings.value(voice_key))
-            if idx == -1:
-                self.status.emit("Saved voice is invalid.")
-            else:
-                self._combobox.setCurrentIndex(idx)
+        idx = self._combobox.findData(service.voice)
+
+        if idx == -1:
+            self.status.emit(
+                f"{'Saved' if settings.contains(service.voice_key()) else 'Default'} voice is invalid."
+            )
+        else:
+            self._combobox.setCurrentIndex(idx)
 
         _ = self._combobox.currentIndexChanged.connect(self._on_current_index_changed)

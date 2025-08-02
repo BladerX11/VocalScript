@@ -61,18 +61,21 @@ class Settings(QDialog):
         """Builds the form fields for the selected service."""
         self._inputs.clear()
         self._field_keys.clear()
-        fields = TtsService.get_setting_fields_for(self.selected_service)
+        service_settings = TtsService.get_service_class(
+            self.selected_service
+        ).setting_fields()
 
         while self._form_layout.rowCount() > 1:
             self._form_layout.removeRow(1)
 
-        for field in fields:
+        for setting in service_settings:
             editor = QLineEdit(self)
-            key = f"{self.selected_service.value}/{field}"
+            name = setting.name
+            key = setting.key
             editor.setText(str(settings.value(key, "")))
-            self._inputs[field] = editor
-            self._field_keys[field] = key
-            self._form_layout.addRow(f"&{field.capitalize()}", editor)
+            self._inputs[name] = editor
+            self._field_keys[name] = key
+            self._form_layout.addRow(f"&{name.capitalize()}", editor)
 
     @Slot(int)
     def on_service_changed(self, index: int):

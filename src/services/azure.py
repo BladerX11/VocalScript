@@ -15,28 +15,41 @@ from azure.cognitiveservices.speech import (
 )
 from azure.cognitiveservices.speech.diagnostics.logging import EventLogger
 
-from exceptions import SynthesisException
+from exceptions import ServiceCreationException, SynthesisException
 from services.ssml_service import SsmlService
-from services.tts_service import Services
+from services.tts_service import Services, Setting
 
 _logger = logging.getLogger(__name__)
 
 
 class Azure(SsmlService[SpeechSynthesisResult]):
-    def __init__(self, subscription: str, endpoint: str, voice: str):
+    def __init__(
+        self,
+        voice: str,
+        key: str,
+        endpoint: str,
+    ):
         """Initialize Azure TTS service.
 
         Args:
-            subscription (str): Azure subscription key.
+            voice (str): Synthesis voice.
+            key (str): Azure subscription key.
             endpoint (str): Azure service endpoint URL.
-            voice (str): Default synthesis voice short name.
+
+        Raises:
+            ServiceCreationException: If the service creation fails.
         """
         super().__init__()
-        speech_config = SpeechConfig(subscription=subscription, endpoint=endpoint)
-        speech_config.speech_synthesis_voice_name = voice
-        self.speech_synthesizer: SpeechSynthesizer = SpeechSynthesizer(
-            speech_config=speech_config, audio_config=None
-        )
+
+        try:
+            speech_config = SpeechConfig(subscription=key, endpoint=endpoint)
+            speech_config.speech_synthesis_voice_name = voice
+            self.speech_synthesizer: SpeechSynthesizer = SpeechSynthesizer(
+                speech_config=speech_config, audio_config=None
+            )
+        except Exception as e:
+            _logger.error("Creating azure service failed", exc_info=True)
+            raise ServiceCreationException("Check log") from e
 
         def _log(msg: str):
             if "INFO" in msg:
@@ -54,14 +67,15 @@ class Azure(SsmlService[SpeechSynthesisResult]):
     @classmethod
     @override
     def setting_fields(cls):
-        return ["key", "endpoint"]
+        return [
+            Setting("key", f"{cls.type().value}/key", " "),
+            Setting("endpoint", f"{cls.type().value}/endpoint", " "),
+        ]
 
     @classmethod
     @override
-    def _save_implementation(cls, file: Path, data: SpeechSynthesisResult):
-        _logger.info("Saving file. File: %s", file.name)
-        with file.open("xb") as f:
-            _ = f.write(data.audio_data)
+    def _default_voice(cls):
+        return ""
 
     @classmethod
     def _has_error(
@@ -81,10 +95,10 @@ class Azure(SsmlService[SpeechSynthesisResult]):
 
         if details.reason == CancellationReason.Error:
             _logger.error("Synthesis failed. Error details: %s", details.error_details)
-            msg = "Synthesis failed. Check log."
+            msg = "Check log"
         else:
             _logger.info("Synthesis canceled")
-            msg = "Synthesis canceled."
+            msg = "Canceled"
 
         raise SynthesisException(msg)
 
@@ -178,6 +192,12 @@ class Azure(SsmlService[SpeechSynthesisResult]):
         result = self.speech_synthesizer.speak_text(text)
         self._has_error(result.cancellation_details)
         return result
+
+    @override
+    def _save_implementation(self, file: Path, data: SpeechSynthesisResult):
+        _logger.info("Saving file. File: %s", file.name)
+        with file.open("xb") as f:
+            _ = f.write(data.audio_data)
 
     @override
     def _get_wav_bytes(self, data: SpeechSynthesisResult):

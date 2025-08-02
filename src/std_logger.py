@@ -33,4 +33,3 @@ class StderrToLogger(io.TextIOBase):
     # Optional for loguru
     async def complete(self):
         self.flush()
-

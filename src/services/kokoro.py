@@ -10,7 +10,8 @@ from kokoro import KPipeline
 from kokoro.pipeline import LANG_CODES
 from torch import FloatTensor, Tensor
 
-from services.tts_service import Services, TtsService
+from exceptions import SynthesisException
+from services.tts_service import Services, Setting, TtsService
 
 _logger = logging.getLogger(__name__)
 
@@ -32,15 +33,15 @@ class Kokoro(TtsService[Tensor]):
     def type(cls):
         return Services.KOKORO
 
-    @override
     @classmethod
-    def setting_fields(cls) -> list[str]:
+    @override
+    def setting_fields(cls) -> list[Setting]:
         return []
 
-    @override
     @classmethod
-    def _save_implementation(cls, file: Path, data: Tensor):
-        soundfile.write(file, data, cls.SAMPLE_RATE)
+    @override
+    def _default_voice(cls):
+        return "af_heart"
 
     @property
     @override
@@ -81,7 +82,12 @@ class Kokoro(TtsService[Tensor]):
 
     @override
     def _synthesise_text_implementation(self, text: str) -> Tensor:
-        generator = self.pipeline(text, self.voice)
+        try:
+            generator = self.pipeline(text, self.voice)
+        except Exception as e:
+            _logger.error("Synthesis failed", exc_info=True)
+            raise SynthesisException("Check log") from e
+
         chunks: list[Tensor] = []
 
         for _, _, audio in list(generator):
@@ -89,6 +95,10 @@ class Kokoro(TtsService[Tensor]):
                 chunks.append(audio)
 
         return torch.cat(chunks)
+
+    @override
+    def _save_implementation(self, file: Path, data: Tensor):
+        soundfile.write(file, data, self.SAMPLE_RATE)
 
     @override
     def _get_wav_bytes(self, data: Tensor):
