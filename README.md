@@ -70,7 +70,7 @@ To get a local copy up and running follow these simple example steps.
 
     ![OS indication on release page](assets/release.webp)
 
-2. Launch the application and click on Application -> Settings in the menubar. For MacOS, it will be the application name -> Preferences in your global menu. Select your prefered service and enter your information and click save.
+2. Launch the application and click on Application -> Settings in the menubar. For MacOS, it will be the application name -> Preferences in your global menu. Select your prefered service, enter your information and click save.
 
     ![Settings button in app](assets/open-settings.webp)
     ![Settings dialog](assets/settings.webp)
