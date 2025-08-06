@@ -107,7 +107,7 @@ Note: For local models, the model and voices will be downloaded and cached local
     ![Save button in app](assets/save.webp)
 
 3. Audio files will be saved in a folder named saved where your OS data folder is, named with the date and time it was synthesised.
-    * Windows: C:\Users\<USER>\AppData\Roaming\vocalscript/vocalscript/saved
+    * Windows: C:\Users\\\<USER>\AppData\Roaming\vocalscript\vocalscript\saved
     * Linux: ~/.local/share/vocalscript/vocalscript/saved
     * MacOS: ~/Library/Application Support/vocalscript/vocalscript/saved
     
@@ -135,12 +135,20 @@ Note: For local models, the model and voices will be downloaded and cached local
 
     ![Clone voice option](assets/clone.webp)
 
-### Editing service information
+### Editing settings
 
-The service information can be edited either through settings in the menubar, or the vocalscript.ini file that will be created at the location where you OS stores configurations.
+The application settings can be changed through the settings window, or the settings file that will be created at the location where you OS stores configurations.
 
 * Linux & MacOS: ~/.config/vocalscript/vocalscript.ini
-* Windows: C:\Users\<USER>\AppData\Roaming\vocalscript\vocalscript.ini
+* Windows: C:\Users\\\<USER>\AppData\Roaming\vocalscript\vocalscript.ini
+
+### Checking logs
+
+Application logs are saved where your OS data folder. It can be viewed for general operation or when errors occur.
+
+* Windows: C:\Users\\\<USER>\AppData\Roaming\vocalscript\vocalscript\vocalscript.log
+* Linux: ~/.local/share/vocalscript/vocalscript/vocalscript.log
+* MacOS: ~/Library/Application Support/vocalscript/vocalscript/vocalscript.log
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
